@@ -1,0 +1,362 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==================== USER MODELS ====================
+
+model User {
+  id                String    @id @default(cuid())
+  email             String?   @unique
+  username          String    @unique
+  passwordHash      String?
+  
+  // Anonymous Identity
+  isAnonymous       Boolean   @default(false)
+  anonymousId       String?   @unique
+  
+  // Shadow Identity
+  shadowName        String?   @unique
+  shadowBio         String?
+  shadowCreatedAt   DateTime?
+  shadowVerified    Boolean   @default(false)
+  
+  // Profile
+  joinedAt          DateTime  @default(now())
+  lastActive        DateTime  @default(now())
+  
+  // Settings
+  inboxEnabled      Boolean   @default(true)
+  allowAnonymousMsg Boolean   @default(true)
+  
+  // Relations
+  posts             Post[]
+  receivedMessages  Message[] @relation("MessageReceiver")
+  reactions         Reaction[]
+  comments          Comment[]
+  feedTracking      FeedTracking[]
+  channelSubs       ChannelSubscription[]
+  savedPosts        SavedPost[]
+  followers         Follow[]  @relation("Following")
+  following         Follow[]  @relation("Follower")
+  blocks            Block[]   @relation("Blocker")
+  blocked           Block[]   @relation("Blocked")
+  reports           Report[]
+  
+  @@index([username])
+  @@index([shadowName])
+  @@index([anonymousId])
+}
+
+// Shadow identity followers
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  
+  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+  
+  blocker   User     @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   User     @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+}
+
+// ==================== CONTENT MODELS ====================
+
+model Post {
+  id              String    @id @default(cuid())
+  content         String
+  authorId        String
+  
+  // Shadow Identity
+  useShadowId     Boolean   @default(false)
+  
+  // Channel
+  channelId       String?
+  
+  // Visibility
+  visibilityType  VisibilityType @default(PUBLIC)
+  viewsLimit      Int?
+  currentViews    Int       @default(0)
+  expiresAt       DateTime?
+  
+  // Metadata
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+  
+  // Engagement
+  reactionCount   Int       @default(0)
+  commentCount    Int       @default(0)
+  
+  // Relations
+  author          User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  channel         Channel?  @relation(fields: [channelId], references: [id])
+  reactions       Reaction[]
+  comments        Comment[]
+  feedTracking    FeedTracking[]
+  savedBy         SavedPost[]
+  reports         Report[]
+  
+  @@index([authorId])
+  @@index([channelId])
+  @@index([createdAt])
+  @@index([visibilityType])
+}
+
+enum VisibilityType {
+  PUBLIC
+  LIMITED
+  FOLLOWERS_ONLY
+  STORY // 24hr expiration
+}
+
+model Comment {
+  id          String   @id @default(cuid())
+  content     String
+  postId      String
+  authorId    String
+  parentId    String?  // For nested comments
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+  
+  // Relations
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent      Comment? @relation("CommentReplies", fields: [parentId], references: [id])
+  replies     Comment[] @relation("CommentReplies")
+  
+  @@index([postId])
+  @@index([authorId])
+  @@index([parentId])
+}
+
+model Channel {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String?
+  color       String?
+  
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  posts       Post[]
+  subscribers ChannelSubscription[]
+  
+  @@index([slug])
+}
+
+model ChannelSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  channelId String
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, channelId])
+  @@index([userId])
+  @@index([channelId])
+}
+
+// ==================== MESSAGING ====================
+
+model Message {
+  id          String      @id @default(cuid())
+  receiverId  String
+  content     String
+  
+  // Message Type
+  type        MessageType @default(TEXT)
+  
+  // Tone Detection
+  tone        ToneType?
+  
+  // Sender info (optional, can be revealed later)
+  senderEmail String?
+  senderName  String?
+  
+  createdAt   DateTime    @default(now())
+  readAt      DateTime?
+  
+  // Public reply
+  repliedWithPostId String?
+  
+  // Relations
+  receiver    User        @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  
+  @@index([receiverId])
+  @@index([createdAt])
+}
+
+enum MessageType {
+  TEXT
+  CONFESSION
+  QUESTION
+  COMPLIMENT
+}
+
+enum ToneType {
+  HONEST
+  HARSH
+  FUNNY
+  DEEP
+  NEUTRAL
+}
+
+// ==================== REACTIONS ====================
+
+model Reaction {
+  id          String       @id @default(cuid())
+  postId      String
+  userId      String
+  type        ReactionType
+  
+  createdAt   DateTime     @default(now())
+  
+  post        Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([postId, userId]) // One reaction per user per post
+  @@index([postId])
+  @@index([userId])
+}
+
+enum ReactionType {
+  RELATE
+  DEEP
+  NOT_ALONE
+  WILD
+  REAL_TALK
+  THANK_YOU
+  THAT_HURTS
+  STAY_STRONG
+}
+
+// ==================== FEED PERSONALIZATION ====================
+
+model FeedTracking {
+  id              String   @id @default(cuid())
+  userId          String
+  postId          String
+  
+  // Engagement metrics
+  viewed          Boolean  @default(false)
+  viewDuration    Int?     // milliseconds
+  scrolledPast    Boolean  @default(false)
+  clickedPost     Boolean  @default(false)
+  readComplete    Boolean  @default(false)
+  
+  // Interaction
+  reacted         Boolean  @default(false)
+  commented       Boolean  @default(false)
+  saved           Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post            Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+}
+
+model SavedPost {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, postId])
+  @@index([userId])
+}
+
+// ==================== MODERATION ====================
+
+model Report {
+  id          String       @id @default(cuid())
+  reporterId  String
+  postId      String?
+  reason      ReportReason
+  description String?
+  
+  status      ReportStatus @default(PENDING)
+  reviewedAt  DateTime?
+  
+  createdAt   DateTime     @default(now())
+  
+  reporter    User         @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  post        Post?        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  @@index([reporterId])
+  @@index([postId])
+  @@index([status])
+}
+
+enum ReportReason {
+  HARASSMENT
+  HATE_SPEECH
+  VIOLENCE
+  SPAM
+  INAPPROPRIATE
+  SELF_HARM
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  ACTIONED
+  DISMISSED
+}
+
+// ==================== ANALYTICS ====================
+
+model UserActivity {
+  id              String   @id @default(cuid())
+  userId          String
+  
+  // Daily stats
+  postsCreated    Int      @default(0)
+  messagesSent    Int      @default(0)
+  reactionsGiven  Int      @default(0)
+  timeSpent       Int      @default(0) // minutes
+  
+  date            DateTime @default(now())
+  
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
+}
