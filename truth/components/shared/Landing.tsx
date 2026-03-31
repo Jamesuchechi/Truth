@@ -1,50 +1,55 @@
-'use client'
+"use client"
 
-import React from 'react'
+import { motion } from "framer-motion"
+import Hero from "@/components/landing/Hero"
+import BentoFeatures from "@/components/landing/BentoFeatures"
+import Stats from "@/components/landing/Stats"
 
-/**
- * Landing component for the TruTH platform.
- * This is the public-facing homepage where users first land.
- * 
- * TODO: Implement vibrant, emotion-driven design with modern animations.
- */
-export const Landing: React.FC = () => {
+export default function Landing() {
   return (
-    <div className="min-h-screen bg-truth-bg text-truth-text flex flex-col items-center justify-center p-6 text-center">
-      <header className="max-w-3xl space-y-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-        <h1 className="text-6xl font-bold tracking-tight bg-gradient-to-r from-truth-accent to-reactions-relate bg-clip-text text-transparent">
-          TruTH
-        </h1>
-        <p className="text-xl text-truth-muted leading-relaxed">
-          The anonymous social network where authenticity trumps validation,
-          and every user experiences their own personalized reality. It&apos;s
-          time to speak your truth.
-        </p>
-        
-        <div className="flex flex-wrap items-center justify-center gap-4 pt-8">
-          <button className="px-8 py-3 bg-truth-accent text-white font-semibold rounded-full hover:bg-truth-accent/90 transition-all shadow-lg shadow-truth-accent/20">
-            Get Started
-          </button>
-          <button className="px-8 py-3 bg-truth-surface border border-truth-border text-truth-text font-semibold rounded-full hover:bg-truth-border transition-all">
-            See What's Fresh
-          </button>
-        </div>
-      </header>
+    <div className="min-h-screen bg-[#050505] selection:bg-truth-accent/30 selection:text-white">
+      {/* Immersive Scroll Experience Container */}
+      <motion.main
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.5 }}
+      >
+        {/* The Hook: Premium Hero */}
+        <Hero />
 
-      {/* Placeholder for Interactive Elements */}
-      <section className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl w-full">
-        {['Personalized Feed', 'Anonymous Inbox', 'Emotional Reactions'].map((feature) => (
-          <div key={feature} className="p-8 bg-truth-surface border border-truth-border rounded-2xl hover:border-truth-accent/50 transition-colors">
-            <h3 className="text-lg font-semibold mb-2">{feature}</h3>
-            <div className="h-2 w-12 bg-truth-accent rounded-full mb-4" />
-            <p className="text-sm text-truth-muted">
-              Discover content that resonates with your unique emotional fingerprint.
+        {/* The Proof: Impact Metrics */}
+        <Stats />
+
+        {/* The Identity: Core Features */}
+        <BentoFeatures />
+
+        {/* The Invitation: Final CTA */}
+        <section className="py-24 px-4 text-center relative overflow-hidden">
+          {/* Internal Glow for CTA */}
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-truth-border to-transparent opacity-50" />
+          
+          <div className="relative z-10 max-w-4xl mx-auto">
+            <h2 className="text-4xl md:text-6xl font-black text-white mb-8 tracking-tighter">
+              READY TO <span className="text-truth-accent">BEGIN?</span>
+            </h2>
+            <p className="text-xl text-truth-muted mb-12 max-w-xl mx-auto">
+              Step into a sanctuary where authenticity is the only currency. 
+              Your truth starts here.
             </p>
+            
+            <button className="px-12 py-5 bg-truth-accent text-white font-bold rounded-full hover:scale-105 active:scale-95 transition-transform shadow-[0_0_40px_-10px_rgba(59,130,246,0.3)]">
+              Enter the Sanctuary
+            </button>
           </div>
-        ))}
-      </section>
+        </section>
+
+        {/* Minimalist Landing Footer */}
+        <footer className="py-12 border-t border-truth-border/30 text-center">
+          <p className="text-sm text-truth-muted/50 tracking-widest uppercase">
+            TruTH &copy; 2026 &bull; Presence Secured
+          </p>
+        </footer>
+      </motion.main>
     </div>
   )
 }
-
-export default Landing
