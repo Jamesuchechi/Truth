@@ -15,13 +15,18 @@ const config: Config = {
         foreground: "var(--foreground)",
         truth: {
           bg: "#0A0A0A",
-          surface: "#111111",
-          border: "#1F1F1F",
-          accent: "#3B82F6",
-          text: "#EDEDED",
-          muted: "#A1A1A1",
-          error: "#EF4444",
-          success: "#10B981",
+          nearBlack: "#141414",
+          darkGray: "#1F1F1F",
+          midGray: "#2A2A2A",
+          textGray: "#888888",
+          textLight: "#E0E0E0",
+          accentRed: "#FF3366",
+          accentPurple: "#9D50BB",
+          accentBlue: "#6E48AA",
+          accentGreen: "#10B981",
+          // Deprecated/Compatibility keys
+          accent: "#FF3366", // Redirecting accent to Red for brutalist look
+          muted: "#888888",
         },
         
         // Reaction Colors
@@ -47,4 +52,6 @@ const config: Config = {
       }
     }
   }
-}
+};
+
+export default config;

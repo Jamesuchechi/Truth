@@ -1,15 +1,25 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Bitter, Crimson_Pro, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/components/auth/SessionProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const bitter = Bitter({
+  variable: "--font-bitter",
   subsets: ["latin"],
+  weight: ["900"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const crimsonPro = Crimson_Pro({
+  variable: "--font-crimson-pro",
   subsets: ["latin"],
+  weight: ["300", "400"],
+  style: ["normal", "italic"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+  weight: ["400", "700"],
 });
 
 export const metadata: Metadata = {
@@ -25,9 +35,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${bitter.variable} ${crimsonPro.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className={`${crimsonPro.className} min-h-full flex flex-col bg-truth-bg text-truth-textLight`}>
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }
