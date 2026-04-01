@@ -30,7 +30,13 @@ import { toggleReaction } from "@/lib/actions/reaction"
 import { createComment } from "@/lib/actions/comment"
 import { useTransition } from "react"
 
-export function PostCard({ post }: { post: PostWithRelations }) {
+export function PostCard({ 
+  post, 
+  isDetail = false 
+}: { 
+  post: PostWithRelations, 
+  isDetail?: boolean 
+}) {
   const { data: session } = useSession()
   const isShadow = post.useShadowId
   const isStory = post.visibilityType === "STORY"
@@ -47,7 +53,7 @@ export function PostCard({ post }: { post: PostWithRelations }) {
   // Optimistic Engagement State
   const [reactionCount, setReactionCount] = useState(post.reactionCount)
   const [isReacted, setIsReacted] = useState(false)
-  const [showComments, setShowComments] = useState(false)
+  const [showComments, setShowComments] = useState(isDetail) // Default open in detail view
   const [commentCount, setCommentCount] = useState(post.commentCount)
   const [commentText, setCommentText] = useState("")
 
@@ -65,7 +71,6 @@ export function PostCard({ post }: { post: PostWithRelations }) {
       const now = Date.now()
       if (now < expiryTime) {
         setCanEdit(true)
-        // Schedule a state update when the window expires
         const remainingTime = expiryTime - now
         const timer = setTimeout(() => setCanEdit(false), remainingTime)
         return () => clearTimeout(timer)
@@ -100,6 +105,10 @@ export function PostCard({ post }: { post: PostWithRelations }) {
     })
   }
 
+  const maxChars = 280
+  const isLong = post.content.length > maxChars
+  const displayContent = (!isDetail && isLong) ? post.content.substring(0, maxChars) + "..." : post.content
+
   return (
     <motion.div 
       ref={containerRef}
@@ -109,8 +118,10 @@ export function PostCard({ post }: { post: PostWithRelations }) {
       className={`
         group relative bg-truth-nearBlack border-2 p-8 mb-6 transition-all duration-500 shadow-[10px_10px_0px_rgba(0,0,0,0.3)]
         ${isStory ? "border-truth-accentPurple shadow-[10px_10px_0px_rgba(168,85,247,0.1)]" : "border-truth-midGray hover:border-truth-accentRed hover:shadow-[12px_12px_0px_rgba(255,51,102,0.15)]"}
+        ${isDetail ? "scale-[1.02] shadow-[15px_15px_0px_rgba(0,0,0,0.4)]" : "cursor-pointer"}
       `}
     >
+      {/* Header and other elements remain mostly the same, but we wrap content in Link if not detail */}
       {/* Thread Connection Line (Visual Hint) */}
       {post.parentId && (
         <div className="absolute -top-6 left-12 w-0.5 h-6 bg-truth-midGray/30" />
@@ -129,7 +140,6 @@ export function PostCard({ post }: { post: PostWithRelations }) {
                ) : (
                  <div className="w-full h-full bg-truth-midGray" />
                )}
-               {/* Scanline overlay for avatar */}
                <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%)] bg-size-[100%_2px]" />
              </div>
           </div>
@@ -233,7 +243,6 @@ export function PostCard({ post }: { post: PostWithRelations }) {
 
       {/* Content Section */}
       <div className="space-y-6 mb-8 relative z-10">
-        {/* Text Content / Edit Mode */}
         {isEditing ? (
           <div className="space-y-4">
             <textarea
@@ -259,14 +268,20 @@ export function PostCard({ post }: { post: PostWithRelations }) {
             </div>
           </div>
         ) : (
-          post.content && (
-            <div className="font-bitter text-xl text-truth-textLight leading-relaxed prose prose-invert prose-lg max-w-none selection:bg-truth-accentRed selection:text-truth-bg">
-              <ReactMarkdown>{post.content}</ReactMarkdown>
-            </div>
-          )
+          <div className="space-y-4">
+            <Link href={`/post/${post.id}`} className={isDetail ? "pointer-events-none" : "block group/content"}>
+              <div className={`font-bitter ${isDetail ? "text-2xl" : "text-xl"} text-truth-textLight leading-relaxed prose prose-invert prose-lg max-w-none selection:bg-truth-accentRed selection:text-truth-bg`}>
+                <ReactMarkdown>{displayContent}</ReactMarkdown>
+              </div>
+              {!isDetail && isLong && (
+                <span className="font-mono text-[10px] text-truth-accentRed uppercase font-black mt-2 inline-block group-hover/content:translate-x-1 transition-transform">
+                  READ_FULL_SIGNAL {" >>"}
+                </span>
+              )}
+            </Link>
+          </div>
         )}
 
-        {/* Media Attachments (Carousel) */}
         {hasMedia && (
           <div className="my-4">
             <ImageCarousel media={post.media} />
@@ -292,7 +307,6 @@ export function PostCard({ post }: { post: PostWithRelations }) {
                 {Math.max(0, (post.viewsLimit || 0) - post.currentViews)}_REMAINING
               </span>
             </div>
-            {/* Scarcity Progress Bar */}
             <div className="absolute bottom-0 left-0 h-[2px] bg-truth-accentBlue/20 w-full">
                <motion.div 
                  initial={{ width: 0 }}
@@ -327,8 +341,8 @@ export function PostCard({ post }: { post: PostWithRelations }) {
         <div className="flex items-center gap-6">
           <button 
             disabled={isPending}
-            onClick={async () => {
-              // Optimistic update
+            onClick={async (e) => {
+              e.stopPropagation()
               const newCount = isReacted ? reactionCount - 1 : reactionCount + 1
               setReactionCount(newCount)
               setIsReacted(!isReacted)
@@ -336,7 +350,6 @@ export function PostCard({ post }: { post: PostWithRelations }) {
               startTransition(async () => {
                 const res = await toggleReaction(post.id)
                 if (res.error) {
-                  // Rollback on error
                   setReactionCount(reactionCount)
                   setIsReacted(isReacted)
                 }
@@ -351,7 +364,11 @@ export function PostCard({ post }: { post: PostWithRelations }) {
           </button>
           
           <button 
-            onClick={() => setShowComments(!showComments)}
+            onClick={(e) => {
+              e.stopPropagation()
+              if (isDetail) return // Always open in detail
+              setShowComments(!showComments)
+            }}
             className={`flex items-center gap-2 transition-all group/btn ${showComments ? "text-truth-accentBlue" : "text-truth-textGray"} hover:text-truth-accentBlue`}
           >
             <div className={`p-2 border border-transparent transition-all ${showComments ? "border-truth-accentBlue/30 bg-truth-accentBlue/5" : ""} group-hover/btn:border-truth-accentBlue`}>
@@ -373,9 +390,9 @@ export function PostCard({ post }: { post: PostWithRelations }) {
         </button>
       </div>
 
-      {/* Comment Trace Input */}
+      {/* Comment Trace Input - Always visible in detail view */}
       <AnimatePresence>
-        {showComments && (
+        {(showComments || isDetail) && (
           <motion.div 
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
@@ -387,7 +404,6 @@ export function PostCard({ post }: { post: PostWithRelations }) {
                 const text = formData.get("content") as string
                 if (!text.trim()) return
                 
-                // Optimistic
                 setCommentCount(prev => prev + 1)
                 setCommentText("")
                 
@@ -423,19 +439,16 @@ export function PostCard({ post }: { post: PostWithRelations }) {
         )}
       </AnimatePresence>
 
-      {/* Decorative Corner */}
       <div className="absolute top-0 right-0 w-8 h-8 pointer-events-none overflow-hidden">
          <div className={`absolute top-0 right-0 w-[200%] h-[200%] rotate-45 translate-x-1/2 -translate-y-1/2 ${isStory ? "bg-truth-accentPurple/20" : "bg-truth-midGray"}`} />
       </div>
 
-      {/* Overlays / Modals */}
       <AnimatePresence>
         {showAnalytics && (
           <PostAnalytics post={post} onClose={() => setShowAnalytics(false)} />
         )}
       </AnimatePresence>
 
-      {/* Pulse Loading Overlay */}
       {isPending && (
         <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] z-20 flex items-center justify-center">
            <Zap className="w-8 h-8 text-truth-accentBlue animate-pulse" />

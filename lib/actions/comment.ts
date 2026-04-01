@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db/prisma"
 import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import type { CommentWithAuthor } from "@/lib/types/comment"
 
 const CommentSchema = z.object({
   content: z.string().min(1, "Comment cannot be empty").max(1000, "Maximum length is 1000 characters"),
@@ -48,5 +49,28 @@ export async function createComment(formData: FormData) {
   } catch (error) {
     console.error("Comment creation error:", error)
     return { error: "Protocol failure: FAILED_TO_SYNC_COMMENT" }
+  }
+}
+
+export async function getComments(postId: string): Promise<CommentWithAuthor[]> {
+  try {
+    const comments = await prisma.comment.findMany({
+      where: { postId, deletedAt: null },
+      orderBy: { createdAt: "desc" },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            image: true,
+            shadowName: true,
+          }
+        }
+      }
+    })
+    return comments
+  } catch (error) {
+    console.error("Error fetching comments:", error)
+    return []
   }
 }

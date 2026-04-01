@@ -10,9 +10,11 @@ export default function MainContent({ children }: { children: React.ReactNode })
     <main 
       className={`flex-1 relative min-h-screen transition-all duration-300 ${
         isCollapsed ? "ml-20" : "ml-72"
-      }`}
+      } xl:mr-80`}
     >
-      {children}
+      <div className="p-4 md:p-8">
+        {children}
+      </div>
     </main>
   )
 }

@@ -291,3 +291,71 @@ export async function getPosts({
 
   return filteredPosts.slice(0, limit)
 }
+
+export async function getPostById(id: string) {
+  const session = await auth()
+  const userId = session?.user?.id
+
+  try {
+    const post = await prisma.post.findUnique({
+      where: { id, deletedAt: null },
+      include: {
+        ...postInclude,
+        feedTracking: userId ? {
+          where: { userId }
+        } : false
+      }
+    })
+
+    if (!post) return null
+
+    // Track view if authenticated
+    if (userId && post.authorId !== userId) {
+      await prisma.feedTracking.upsert({
+        where: { userId_postId: { userId, postId: id } },
+        create: { userId, postId: id, viewed: true, clickedPost: true },
+        update: { viewed: true, clickedPost: true, viewCount: { increment: 1 } }
+      })
+
+      // Increment view count on post if limited
+      if (post.visibilityType === "LIMITED") {
+        await prisma.post.update({
+          where: { id },
+          data: { currentViews: { increment: 1 } }
+        })
+      }
+    }
+
+    return post
+  } catch (error) {
+    console.error("Error fetching post:", error)
+    return null
+  }
+}
+
+export async function getTrendingPosts(limit = 5) {
+  try {
+    // Basic trending logic: most reactions + comments in the last 48 hours
+    const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
+    
+    const posts = await prisma.post.findMany({
+      where: {
+        createdAt: { gte: fortyEightHoursAgo },
+        deletedAt: null,
+        visibilityType: "PUBLIC",
+      },
+      take: limit,
+      orderBy: [
+        { reactionCount: "desc" },
+        { commentCount: "desc" },
+        { createdAt: "desc" }
+      ],
+      include: postInclude
+    })
+
+    return posts
+  } catch (error) {
+    console.error("Error fetching trending posts:", error)
+    return []
+  }
+}
