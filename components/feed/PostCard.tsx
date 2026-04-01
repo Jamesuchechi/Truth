@@ -1,6 +1,6 @@
 "use client"
 
-import type { Post, User, Channel } from "@prisma/client"
+import type { Prisma } from "@prisma/client"
 import { formatRelativeTime } from "@/lib/utils"
 import { 
   Heart, 
@@ -13,10 +13,12 @@ import {
 } from "lucide-react"
 import { motion } from "framer-motion"
 
-export type PostWithAuthor = Post & {
-  author: User
-  channel?: Channel | null
-}
+export type PostWithAuthor = Prisma.PostGetPayload<{
+  include: { 
+    author: true, 
+    channel: true 
+  }
+}>
 
 export function PostCard({ post }: { post: PostWithAuthor }) {
   const isShadow = post.useShadowId
