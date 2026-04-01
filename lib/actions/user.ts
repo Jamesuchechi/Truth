@@ -70,11 +70,6 @@ export async function loginUser(prevState: ActionState, formData: FormData): Pro
   const passwordsMatch = await bcrypt.compare(password, existingUser.passwordHash)
   if (!passwordsMatch) return { error: "Invalid credentials" }
 
-  if (!existingUser.emailVerified) {
-    const token = await generateVerificationToken(email)
-    await sendVerificationEmail(token.identifier, token.token)
-    return { success: "Verification email sent!" }
-  }
 
   if (existingUser.isTwoFactorEnabled && existingUser.twoFactorSecret) {
     if (code) {
