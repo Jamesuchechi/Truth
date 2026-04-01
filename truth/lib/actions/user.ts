@@ -63,6 +63,7 @@ export async function loginUser(prevState: ActionState, formData: FormData): Pro
   const { success: rateLimitOk } = await rateLimit(`login:${email}`, 5, 600)
   if (!rateLimitOk) return { error: "Too many login attempts. Please wait." }
 
+  // Single DB query — avoid double-connecting to Neon
   const existingUser = await prisma.user.findUnique({ where: { email } })
   if (!existingUser || !existingUser.passwordHash) return { error: "Invalid credentials" }
 
@@ -105,9 +106,10 @@ export async function loginUser(prevState: ActionState, formData: FormData): Pro
         case "CredentialsSignin":
           return { error: "Invalid credentials." }
         default:
-          return { error: "Something went wrong." }
+          return { error: "Something went wrong. Please try again." }
       }
     }
+    // Re-throw NEXT_REDIRECT — Next.js uses this internally for redirect()
     throw error
   }
 }
