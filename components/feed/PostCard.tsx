@@ -13,7 +13,7 @@ import {
 } from "lucide-react"
 import { motion } from "framer-motion"
 
-type PostWithAuthor = Post & {
+export type PostWithAuthor = Post & {
   author: User
   channel?: Channel | null
 }

@@ -1,7 +1,7 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/db/prisma"
 import PostComposer from "@/components/feed/PostComposer"
-import { PostCard } from "@/components/feed/PostCard"
+import { PostCard, type PostWithAuthor } from "@/components/feed/PostCard"
 import { Ghost, Terminal as TerminalIcon, ShieldAlert } from "lucide-react"
 
 export default async function FeedPage() {
@@ -53,7 +53,7 @@ export default async function FeedPage() {
       {/* Feed Content */}
       <div className="space-y-8">
         {(posts && posts.length > 0) ? (
-          posts.map((post) => (
+          posts.map((post: PostWithAuthor) => (
             <PostCard key={post.id} post={post} />
           ))
         ) : (
