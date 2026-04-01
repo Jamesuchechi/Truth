@@ -17,7 +17,8 @@ import {
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { logoutUser } from "@/lib/actions/user"
-import { useTransition } from "react"
+import { getSubscribedChannels } from "@/lib/actions/channel"
+import { useTransition, useState, useEffect } from "react"
 import { useSidebar } from "./SidebarProvider"
 
 const navItems = [
@@ -31,6 +32,15 @@ export default function Sidebar({ user }: { user: { id: string; username?: strin
   const pathname = usePathname()
   const [isPending, startTransition] = useTransition()
   const { isCollapsed, toggleSidebar } = useSidebar()
+  const [subscribedChannels, setSubscribedChannels] = useState<{id: string, name: string, slug: string, color: string | null}[]>([])
+
+  useEffect(() => {
+    const fetchChannels = async () => {
+      const data = await getSubscribedChannels()
+      setSubscribedChannels(data)
+    }
+    fetchChannels()
+  }, [])
 
   const handleLogout = () => {
     startTransition(async () => {
@@ -40,8 +50,8 @@ export default function Sidebar({ user }: { user: { id: string; username?: strin
 
   return (
     <aside className={`h-screen fixed left-0 top-0 bg-truth-nearBlack border-r-2 border-truth-midGray flex flex-col z-50 transition-all duration-300 ${isCollapsed ? "w-20" : "w-72"}`}>
-      {/* Branding */}
-      <div className={`p-6 border-b-2 border-truth-midGray relative group overflow-hidden ${isCollapsed ? "flex justify-center" : ""}`}>
+      {/* Branding & Toggle */}
+      <div className={`p-6 border-b-2 border-truth-midGray relative group overflow-hidden ${isCollapsed ? "flex flex-col items-center gap-4" : "flex items-center justify-between"}`}>
          <motion.div 
            initial={{ x: -20, opacity: 0 }}
            animate={{ x: 0, opacity: 1 }}
@@ -65,6 +75,23 @@ export default function Sidebar({ user }: { user: { id: string; username?: strin
              </motion.div>
            )}
          </motion.div>
+
+         {/* Toggle Button - Now at the Top */}
+         <button 
+           onClick={toggleSidebar}
+           className={`
+             group p-2 hover:bg-truth-accentRed/10 text-truth-textGray hover:text-truth-accentRed transition-all
+             ${isCollapsed ? "mt-2" : ""}
+           `}
+           title={isCollapsed ? "Expand Protocol" : "Collapse Protocol"}
+         >
+           {isCollapsed ? (
+             <ChevronRight className="w-5 h-5 animate-pulse" />
+           ) : (
+             <ChevronLeft className="w-5 h-5" />
+           )}
+         </button>
+
          {/* Background Scanline effect overlay */}
          <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-size-[100%_2px,300%_100%] z-0 opacity-20 pointer-events-none" />
       </div>
@@ -107,26 +134,80 @@ export default function Sidebar({ user }: { user: { id: string; username?: strin
         <AnimatePresence>
           {!isCollapsed && (
             <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="pt-8 px-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="pt-8 px-4 space-y-6"
             >
-               <div className="h-px bg-truth-midGray w-full mb-8" />
-               <p className="font-mono text-[9px] text-truth-textGray uppercase tracking-widest mb-4 flex items-center gap-2">
-                 <Zap className="w-3 h-3 text-truth-accentRed" /> Network Status
-               </p>
-               <div className="space-y-3">
-                 <div className="flex items-center justify-between text-[8px] font-mono uppercase">
-                   <span className="text-truth-textGray">Encryption Level</span>
-                   <span className="text-truth-accentGreen">AES-256</span>
-                 </div>
-                 <div className="flex items-center justify-between text-[8px] font-mono uppercase">
-                   <span className="text-truth-textGray">Protocol Lag</span>
-                   <span className="text-truth-accentRed">12ms</span>
-                 </div>
+               {/* Channels Section */}
+               <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="font-mono text-[9px] text-truth-textGray uppercase tracking-widest flex items-center gap-2">
+                      <Hash className="w-3 h-3 text-truth-accentRed" /> Protocol Signals
+                    </p>
+                    <Link href="/channels" className="font-mono text-[8px] text-truth-accentBlue hover:underline uppercase">Matrix</Link>
+                  </div>
+                  <div className="space-y-1">
+                    {subscribedChannels.length > 0 ? (
+                      subscribedChannels.map(channel => (
+                        <Link 
+                          key={channel.id} 
+                          href={`/channels/${channel.slug}`}
+                          className={`
+                            flex items-center gap-3 p-2 border-l-2 text-[10px] uppercase font-mono tracking-wider transition-all
+                            ${pathname === `/channels/${channel.slug}` 
+                              ? "bg-truth-accentRed/5 border-truth-accentRed text-truth-textLight" 
+                              : "border-transparent text-truth-textGray hover:bg-truth-darkGray/50 hover:text-truth-textLight"}
+                          `}
+                        >
+                          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: channel.color || "#FF3366" }} />
+                          {channel.name}
+                        </Link>
+                      ))
+                    ) : (
+                      <p className="font-mono text-[8px] text-truth-textGray/40 italic px-2">No signals synchronized...</p>
+                    )}
+                  </div>
+               </div>
+
+               <div className="h-px bg-truth-midGray w-full" />
+
+               {/* Stats Section */}
+               <div>
+                  <p className="font-mono text-[9px] text-truth-textGray uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <Zap className="w-3 h-3 text-truth-accentRed" /> Network Status
+                  </p>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-[8px] font-mono uppercase">
+                      <span className="text-truth-textGray">Encryption Level</span>
+                      <span className="text-truth-accentGreen">AES-256</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[8px] font-mono uppercase">
+                      <span className="text-truth-textGray">Protocol Lag</span>
+                      <span className="text-truth-accentRed">12ms</span>
+                    </div>
+                  </div>
                </div>
             </motion.div>
+          )}
+
+          {isCollapsed && subscribedChannels.length > 0 && (
+             <motion.div 
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               className="pt-8 flex flex-col items-center gap-4"
+             >
+               <div className="h-px bg-truth-midGray w-8" />
+               {subscribedChannels.slice(0, 5).map(channel => (
+                 <Link 
+                   key={channel.id} 
+                   href={`/channels/${channel.slug}`}
+                   title={channel.name}
+                   className={`w-2 h-2 rounded-full transition-transform hover:scale-150 ${pathname === `/channels/${channel.slug}` ? "ring-2 ring-truth-accentRed ring-offset-2 ring-offset-truth-bg" : ""}`}
+                   style={{ backgroundColor: channel.color || "#FF3366" }}
+                 />
+               ))}
+             </motion.div>
           )}
         </AnimatePresence>
       </nav>

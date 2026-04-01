@@ -1,8 +1,9 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/db/prisma"
 import PostComposer from "@/components/feed/PostComposer"
-import { PostCard, type PostWithAuthor } from "@/components/feed/PostCard"
+import { PostCard } from "@/components/feed/PostCard"
 import { Ghost, Terminal as TerminalIcon, ShieldAlert } from "lucide-react"
+import { postInclude, type PostWithRelations } from "@/lib/types/post"
 
 export default async function FeedPage() {
   const session = await auth()
@@ -11,10 +12,7 @@ export default async function FeedPage() {
     where: {
       deletedAt: null,
     },
-    include: {
-      author: true,
-      channel: true,
-    },
+    include: postInclude,
     orderBy: {
       createdAt: "desc",
     },
@@ -53,7 +51,7 @@ export default async function FeedPage() {
       {/* Feed Content */}
       <div className="space-y-8">
         {(posts && posts.length > 0) ? (
-          posts.map((post: PostWithAuthor) => (
+          posts.map((post: PostWithRelations) => (
             <PostCard key={post.id} post={post} />
           ))
         ) : (
