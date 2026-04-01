@@ -1,8 +1,16 @@
 // app/api/feed/track/route.ts
 
+import { auth } from '@/auth'
+import { prisma } from '@/lib/db/prisma'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+
 export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const session = await auth()
+  
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
 
   const { postId, action, duration } = await request.json()
 

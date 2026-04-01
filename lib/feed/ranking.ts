@@ -87,13 +87,7 @@ export async function getPersonalizedFeed(
     where: {
       channelId: { in: channelIds },
       deletedAt: null,
-      OR: [
-        { visibilityType: 'PUBLIC' },
-        { 
-          visibilityType: 'LIMITED',
-          currentViews: { lt: prisma.raw('views_limit') }
-        }
-      ]
+      visibilityType: 'PUBLIC',
     },
     include: {
       author: {

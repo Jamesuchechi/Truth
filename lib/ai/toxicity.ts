@@ -2,27 +2,41 @@
 
 import OpenAI from 'openai'
 
+// OpenRouter configuration
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY,
+  defaultHeaders: {
+    "HTTP-Referer": "https://truth.io", // Replace with your site URL
+    "X-Title": "Truth AI Moderation",
+  }
 })
+
+export type ToneType = 'HONEST' | 'HARSH' | 'FUNNY' | 'DEEP' | 'NEUTRAL'
+
+// Using a Groq model through OpenRouter
+const TOXICITY_MODEL = "groq/llama-3.1-70b-versatile"
+const TONE_MODEL = "groq/llama-3.1-70b-versatile"
 
 export async function checkToxicity(content: string): Promise<boolean> {
   try {
-    const response = await openai.moderations.create({
-      input: content
+    const response = await openai.chat.completions.create({
+      model: TOXICITY_MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: `Analyze this message for toxicity. Respond with ONLY 'TRUE' if it contains hate speech, harassment, or extreme violence, and 'FALSE' otherwise.`
+        },
+        {
+          role: 'user',
+          content
+        }
+      ],
+      max_tokens: 5
     })
 
-    const result = response.results[0]
-
-    // Flag if any category exceeds threshold
-    const isToxic = 
-      result.categories.harassment ||
-      result.categories.hate ||
-      result.categories.self_harm ||
-      result.categories.sexual_minors ||
-      result.categories.violence
-
-    return isToxic
+    const result = response.choices[0].message.content?.trim().toUpperCase()
+    return result === 'TRUE'
   } catch (error) {
     console.error('Toxicity check failed:', error)
     // Fail open - don't block if API fails
@@ -33,7 +47,7 @@ export async function checkToxicity(content: string): Promise<boolean> {
 export async function detectTone(content: string): Promise<ToneType> {
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: TONE_MODEL,
       messages: [
         {
           role: 'system',
@@ -49,7 +63,8 @@ export async function detectTone(content: string): Promise<ToneType> {
 
     const tone = response.choices[0].message.content?.trim().toUpperCase()
     
-    if (['HONEST', 'HARSH', 'FUNNY', 'DEEP', 'NEUTRAL'].includes(tone || '')) {
+    const validTones: ToneType[] = ['HONEST', 'HARSH', 'FUNNY', 'DEEP', 'NEUTRAL']
+    if (validTones.includes(tone as ToneType)) {
       return tone as ToneType
     }
 

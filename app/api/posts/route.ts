@@ -3,6 +3,8 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/db/prisma'
+import { getPersonalizedFeed } from '@/lib/feed/ranking'
+import { checkToxicity } from '@/lib/ai/toxicity'
 
 export async function GET(request: NextRequest) {
   const session = await auth()
