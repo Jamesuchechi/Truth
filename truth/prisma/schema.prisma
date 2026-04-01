@@ -15,6 +15,7 @@ model User {
   email             String?   @unique
   emailVerified     DateTime?
   image             String?
+  bio               String?
   username          String    @unique
   passwordHash      String?
   
@@ -29,7 +30,7 @@ model User {
   shadowVerified    Boolean   @default(false)
   
   // Profile
-  joinedAt          DateTime  @default(now())
+  createdAt         DateTime  @default(now())
   lastActive        DateTime  @default(now())
   twoFactorSecret   String?   @unique
   
@@ -37,15 +38,22 @@ model User {
   inboxEnabled      Boolean   @default(true)
   allowAnonymousMsg Boolean   @default(true)
   isTwoFactorEnabled Boolean  @default(false)
+  role              Role      @default(USER)
   twoFactorConfirmation TwoFactorConfirmation?
+  
+  // Security Questions
+  securityQuestion  String?
+  securityAnswer    String?   // Hashed for security
   
   // Auth relations
   accounts          Account[]
   sessions          Session[]
   
   // Relations
+  usernameHistory   UsernameHistory[]
   posts             Post[]
   receivedMessages  Message[] @relation("MessageReceiver")
+  sentMessages      Message[] @relation("MessageSender")
   reactions         Reaction[]
   comments          Comment[]
   feedTracking      FeedTracking[]
@@ -60,6 +68,22 @@ model User {
   @@index([username])
   @@index([shadowName])
   @@index([anonymousId])
+}
+
+model UsernameHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  username  String
+  changedAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+enum Role {
+  USER
+  ADMIN
 }
 
 model Account {
@@ -269,6 +293,7 @@ model Message {
   tone        ToneType?
   
   // Sender info (optional, can be revealed later)
+  senderId    String?
   senderEmail String?
   senderName  String?
   
@@ -280,8 +305,10 @@ model Message {
   
   // Relations
   receiver    User        @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender      User?       @relation("MessageSender", fields: [senderId], references: [id])
   
   @@index([receiverId])
+  @@index([senderId])
   @@index([createdAt])
 }
 

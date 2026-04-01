@@ -474,7 +474,7 @@ model User {
   shadowVerified    Boolean   @default(false)
   
   // Profile
-  joinedAt          DateTime  @default(now())
+  createdAt         DateTime  @default(now())
   lastActive        DateTime  @default(now())
   
   // Settings

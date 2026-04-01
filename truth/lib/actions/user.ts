@@ -39,6 +39,10 @@ const SettingsSchema = z.object({
   password: z.string().min(6).optional(),
   newPassword: z.string().min(6).optional(),
   isTwoFactorEnabled: z.boolean().optional(),
+  bio: z.string().max(500).optional(),
+  image: z.string().url().optional().or(z.literal("")),
+  securityQuestion: z.string().optional(),
+  securityAnswer: z.string().optional(),
 })
 
 export async function loginUser(prevState: ActionState, formData: FormData): Promise<ActionState> {
@@ -125,40 +129,92 @@ export async function registerUser(prevState: ActionState, formData: FormData): 
   const { success: rateLimitOk } = await rateLimit(`signup:${email}`, 3, 3600)
   if (!rateLimitOk) return { error: "Too many registration attempts. Please wait." }
 
+  const session = await auth()
+  const isAnonymousSession = session?.user?.isAnonymous // Note: Ensure session user has isAnonymous
+
   try {
-    // Check if user already exists
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [{ email }, { username }],
-      },
+    // Check if email already exists on a fully registered account
+    const existingRegistration = await prisma.user.findUnique({
+      where: { email },
     })
 
-    if (existingUser) {
+    if (existingRegistration && !existingRegistration.isAnonymous) {
       return {
-        error: "User with this email or username already exists",
+        error: "User with this email already exists",
       }
     }
 
     // Hash password
     const passwordHash = await bcrypt.hash(password, 12)
 
-    // Create user
-    await prisma.user.create({
-      data: {
-        username,
-        email,
-        passwordHash,
-        shadowName: `shadow_${Math.random().toString(36).substring(2, 7)}`,
-      },
-    })
+    if (isAnonymousSession && session?.user?.id) {
+        // CONVERSION LOGIC: Update the existing anonymous user
+        await prisma.user.update({
+            where: { id: session.user.id },
+            data: {
+                username,
+                email,
+                passwordHash,
+                isAnonymous: false,
+                emailVerified: null, // Require verification
+            }
+        })
+    } else {
+        // NORMAL REGISTRATION: Create a new user
+        // Check if username already exists (only for new registrations)
+        const existingUsername = await prisma.user.findUnique({
+            where: { username },
+        })
+
+        if (existingUsername) {
+            return { error: "Username is already taken" }
+        }
+
+        await prisma.user.create({
+            data: {
+                username,
+                email,
+                passwordHash,
+                shadowName: `shadow_${Math.random().toString(36).substring(2, 7)}`,
+                isAnonymous: false,
+            },
+        })
+    }
 
     const verificationToken = await generateVerificationToken(email)
     await sendVerificationEmail(verificationToken.identifier, verificationToken.token)
 
-    return { success: "Verification email sent! Please check your inbox." }
+    return { success: "Protocol initialized. Verification email sent!" }
   } catch (error) {
     console.error("Registration error:", error)
     return { error: "Something went wrong. Please try again." }
+  }
+}
+
+export async function loginAnonymous(): Promise<ActionState> {
+  const anonymousId = Math.random().toString(36).substring(2, 12);
+  const guestUsername = `guest_${Math.random().toString(36).substring(2, 8)}`;
+
+  try {
+    const user = await prisma.user.create({
+      data: {
+        username: guestUsername,
+        isAnonymous: true,
+        anonymousId: anonymousId,
+        shadowName: `shadow_${Math.random().toString(36).substring(2, 7)}`,
+      }
+    });
+
+    await signIn("credentials", {
+      anonymousId: user.anonymousId as string,
+      type: "anonymous",
+      redirect: false,
+    });
+
+    return { success: "Logged in as guest" };
+  } catch (error) {
+    console.error("Anonymous login error:", error);
+    return { error: "Failed to start guest session" };
   }
 }
 
@@ -254,7 +310,21 @@ export async function updateSettings(values: z.infer<typeof SettingsSchema>): Pr
 
   const updateData: Partial<typeof dbUser> = {}
 
-  if (values.username) updateData.username = values.username
+  if (values.username && values.username !== dbUser.username) {
+    // Check if username unique
+    const existingName = await prisma.user.findUnique({ where: { username: values.username } })
+    if (existingName) return { error: "Username already taken" }
+    
+    // Log history
+    await prisma.usernameHistory.create({
+      data: {
+        userId: dbUser.id,
+        username: dbUser.username
+      }
+    })
+    updateData.username = values.username
+  }
+
   if (values.email && values.email !== dbUser.email) {
     const existingUser = await prisma.user.findUnique({ where: { email: values.email } })
     if (existingUser) return { error: "Email already in use" }
@@ -270,6 +340,14 @@ export async function updateSettings(values: z.infer<typeof SettingsSchema>): Pr
 
   if (typeof values.isTwoFactorEnabled !== 'undefined') {
     updateData.isTwoFactorEnabled = values.isTwoFactorEnabled
+  }
+
+  if (values.bio !== undefined) updateData.bio = values.bio
+  if (values.image !== undefined) updateData.image = values.image
+  
+  if (values.securityQuestion && values.securityAnswer) {
+    updateData.securityQuestion = values.securityQuestion
+    updateData.securityAnswer = await bcrypt.hash(values.securityAnswer, 10)
   }
 
   await prisma.user.update({
@@ -337,4 +415,58 @@ export async function disableTwoFactor(): Promise<ActionState> {
   })
 
   return { success: "Two-factor authentication disabled" }
+}
+
+export async function getUserByUsername(username: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { username },
+      select: {
+        id: true,
+        username: true,
+        email: false, // Security: don't leak email
+        image: true,
+        bio: true,
+        isAnonymous: true,
+        shadowName: true,
+        createdAt: true,
+        _count: {
+          select: {
+            posts: true,
+            followers: true,
+            following: true,
+          }
+        }
+      }
+    })
+
+    return user
+  } catch {
+    return null
+  }
+}
+
+export async function getSecurityQuestion(email: string) {
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { securityQuestion: true }
+  })
+  
+  if (!user || !user.securityQuestion) return { error: "No security protocol found for this identity." }
+  return { success: true, question: user.securityQuestion }
+}
+
+export async function verifySecurityAnswer(email: string, answer: string) {
+  const user = await prisma.user.findUnique({
+    where: { email }
+  })
+  
+  if (!user || !user.securityAnswer) return { error: "Identity protocol failure." }
+  
+  const isValid = await bcrypt.compare(answer, user.securityAnswer)
+  if (!isValid) return { error: "Invalid protocol decryption key." }
+  
+  // Create a password reset token
+  const token = await generatePasswordResetToken(email)
+  return { success: true, token: token.token }
 }

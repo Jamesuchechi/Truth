@@ -1,17 +1,33 @@
-// components/auth/SignupForm.tsx
 "use client"
 
-import { useState, useEffect, useActionState } from "react"
-import { registerUser, type ActionState } from "@/lib/actions/user"
+import { useState, useEffect, useTransition } from "react"
+import { registerUser, loginAnonymous, type ActionState } from "@/lib/actions/user"
 import Link from "next/link"
-import { ArrowRight, Loader2, Mail, User, Lock, CheckCircle2, XCircle } from "lucide-react"
+import { ArrowRight, Loader2, Mail, User, Lock, CheckCircle2, XCircle, Ghost } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useActionState } from "react"
+import SocialLogins from "./SocialLogins"
 
 const initialState: ActionState = {}
 
 export default function SignupForm() {
   const [state, action, isPending] = useActionState(registerUser, initialState)
+  const [isAnonChange, startAnonTransition] = useTransition()
+  const router = useRouter()
   const [username, setUsername] = useState("")
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'reserved'>('idle')
+
+  const handleAnonymous = () => {
+    startAnonTransition(async () => {
+      const res = await loginAnonymous()
+      if (res.success) {
+        router.push("/feed")
+        router.refresh()
+      }
+    })
+  }
+
+  const isAnyPending = isPending || isAnonChange
 
   useEffect(() => {
     if (username.length < 3) return
@@ -136,7 +152,7 @@ export default function SignupForm() {
 
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isAnyPending}
           className="w-full py-6 bg-truth-accentRed text-truth-bg font-mono font-bold text-sm uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:scale-100"
         >
           {isPending ? (
@@ -149,6 +165,35 @@ export default function SignupForm() {
           )}
         </button>
       </form>
+
+      <div className="mt-4">
+        <button
+          type="button"
+          disabled={isAnyPending}
+          onClick={handleAnonymous}
+          className="w-full py-4 border-2 border-truth-midGray text-truth-textGray font-mono text-[10px] uppercase tracking-widest hover:border-truth-accentRed hover:text-truth-accentRed transition-all flex items-center justify-center gap-2 group disabled:opacity-50"
+        >
+          {isAnonChange ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <>
+              <Ghost className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+              Shadow Entry (Guest)
+            </>
+          )}
+        </button>
+      </div>
+
+      <div className="relative my-8">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-truth-midGray"></span>
+        </div>
+        <div className="relative flex justify-center text-[10px] uppercase font-mono tracking-widest text-truth-textGray bg-truth-nearBlack px-2">
+          Or Protocol Sync
+        </div>
+      </div>
+
+      <SocialLogins />
 
       <div className="mt-8 text-center">
         <p className="font-mono text-[10px] uppercase tracking-widest text-truth-textGray">

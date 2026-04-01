@@ -4,6 +4,7 @@ import { useState } from "react"
 import { getTwoFactorSecret, enableTwoFactor, disableTwoFactor, type ActionState } from "@/lib/actions/user"
 import { useSession } from "next-auth/react"
 import { Loader2, ShieldCheck, ShieldAlert, CheckCircle2, AlertCircle, QrCode } from "lucide-react"
+import Image from "next/image"
 
 export default function TwoFactorSetup() {
   const { data: session, update } = useSession()
@@ -85,7 +86,13 @@ export default function TwoFactorSetup() {
         <div className="space-y-6 animate-in fade-in duration-500">
           <div className="flex flex-col md:flex-row gap-8 items-center bg-truth-bg p-6 border border-truth-midGray">
             <div className="bg-white p-2">
-              <img src={secretData.qrCode} alt="QR Code" className="w-32 h-32" />
+              <Image 
+                src={secretData.qrCode} 
+                alt="QR Code" 
+                width={128} 
+                height={128}
+                unoptimized
+              />
             </div>
             <div className="space-y-4 flex-1">
               <p className="font-mono text-xs text-truth-textLight uppercase tracking-tight">1. Scan this holographic key with your authenticator device</p>
