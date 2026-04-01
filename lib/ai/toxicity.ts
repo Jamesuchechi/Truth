@@ -3,14 +3,28 @@
 import OpenAI from 'openai'
 
 // OpenRouter configuration
-const openai = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.OPENROUTER_API_KEY,
-  defaultHeaders: {
-    "HTTP-Referer": "https://truth.io", // Replace with your site URL
-    "X-Title": "Truth AI Moderation",
+let _openai: OpenAI | null = null;
+
+function getOpenAIClient() {
+  if (_openai) return _openai;
+  
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    console.warn("OPENROUTER_API_KEY is missing. AI features will fail open.");
+    return null;
   }
-})
+
+  _openai = new OpenAI({
+    baseURL: "https://openrouter.ai/api/v1",
+    apiKey,
+    defaultHeaders: {
+      "HTTP-Referer": "https://truth.io", // Replace with your site URL
+      "X-Title": "Truth AI Moderation",
+    }
+  });
+  
+  return _openai;
+}
 
 export type ToneType = 'HONEST' | 'HARSH' | 'FUNNY' | 'DEEP' | 'NEUTRAL'
 
@@ -19,6 +33,9 @@ const TOXICITY_MODEL = "groq/llama-3.1-70b-versatile"
 const TONE_MODEL = "groq/llama-3.1-70b-versatile"
 
 export async function checkToxicity(content: string): Promise<boolean> {
+  const openai = getOpenAIClient();
+  if (!openai) return false;
+
   try {
     const response = await openai.chat.completions.create({
       model: TOXICITY_MODEL,
@@ -45,6 +62,9 @@ export async function checkToxicity(content: string): Promise<boolean> {
 }
 
 export async function detectTone(content: string): Promise<ToneType> {
+  const openai = getOpenAIClient();
+  if (!openai) return 'NEUTRAL';
+
   try {
     const response = await openai.chat.completions.create({
       model: TONE_MODEL,
