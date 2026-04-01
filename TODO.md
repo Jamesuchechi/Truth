@@ -203,7 +203,7 @@ Overall:  █░░░░░░░░░ 10%
   - [x] "You're 1 of X" notification badge
   - [x] Remaining views counter
   - [x] Scarcity messaging
-  - [x] Post unavailable screendb push
+  - [x] Post unavailable screen
 - [x] Analytics
   - [x] Track who viewed (privacy-safe)
   - [x] View distribution analysis

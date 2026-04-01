@@ -26,6 +26,9 @@ import ImageCarousel from "./ImageCarousel"
 import PostAnalytics from "./PostAnalytics"
 import { usePostTrack } from "@/hooks/usePostTrack"
 import { updatePost, deletePost, archivePost } from "@/lib/actions/post"
+import { toggleReaction } from "@/lib/actions/reaction"
+import { createComment } from "@/lib/actions/comment"
+import { useTransition } from "react"
 
 export function PostCard({ post }: { post: PostWithRelations }) {
   const { data: session } = useSession()
@@ -39,7 +42,14 @@ export function PostCard({ post }: { post: PostWithRelations }) {
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(post.content)
-  const [isPending, setIsPending] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  
+  // Optimistic Engagement State
+  const [reactionCount, setReactionCount] = useState(post.reactionCount)
+  const [isReacted, setIsReacted] = useState(false)
+  const [showComments, setShowComments] = useState(false)
+  const [commentCount, setCommentCount] = useState(post.commentCount)
+  const [commentText, setCommentText] = useState("")
 
   // Tracking
   const { containerRef } = usePostTrack({ postId: post.id })
@@ -67,27 +77,27 @@ export function PostCard({ post }: { post: PostWithRelations }) {
     return checkEditWindow()
   }, [post.createdAt])
 
-  const handleUpdate = async () => {
-    setIsPending(true)
-    const res = await updatePost(post.id, editContent)
-    if (res.success) setIsEditing(false)
-    setIsPending(false)
-    setIsMenuOpen(false)
+  const handleUpdate = () => {
+    startTransition(async () => {
+      const res = await updatePost(post.id, editContent)
+      if (res.success) setIsEditing(false)
+      setIsMenuOpen(false)
+    })
   }
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (confirm("TERMINATE_SIGNAL: Are you sure? This action is permanent in the current reality.")) {
-      setIsPending(true)
-      await deletePost(post.id)
-      setIsPending(false)
+      startTransition(async () => {
+        await deletePost(post.id)
+      })
     }
   }
 
-  const handleArchive = async () => {
-    setIsPending(true)
-    await archivePost(post.id)
-    setIsPending(false)
-    setIsMenuOpen(false)
+  const handleArchive = () => {
+    startTransition(async () => {
+      await archivePost(post.id)
+      setIsMenuOpen(false)
+    })
   }
 
   return (
@@ -315,18 +325,39 @@ export function PostCard({ post }: { post: PostWithRelations }) {
       {/* Footer Actions */}
       <div className="flex items-center justify-between pt-6 border-t border-truth-midGray relative z-10">
         <div className="flex items-center gap-6">
-          <button className={`flex items-center gap-2 text-truth-textGray transition-all group/btn ${isStory ? "hover:text-truth-accentPurple" : "hover:text-truth-accentRed"}`}>
-            <div className={`p-2 border border-transparent transition-all ${isStory ? "group-hover/btn:border-truth-accentPurple" : "group-hover/btn:border-truth-accentRed"}`}>
-              <Heart className="w-4 h-4" />
+          <button 
+            disabled={isPending}
+            onClick={async () => {
+              // Optimistic update
+              const newCount = isReacted ? reactionCount - 1 : reactionCount + 1
+              setReactionCount(newCount)
+              setIsReacted(!isReacted)
+              
+              startTransition(async () => {
+                const res = await toggleReaction(post.id)
+                if (res.error) {
+                  // Rollback on error
+                  setReactionCount(reactionCount)
+                  setIsReacted(isReacted)
+                }
+              })
+            }}
+            className={`flex items-center gap-2 transition-all group/btn ${isReacted ? "text-truth-accentRed" : "text-truth-textGray"} ${isStory ? "hover:text-truth-accentPurple" : "hover:text-truth-accentRed"}`}
+          >
+            <div className={`p-2 border border-transparent transition-all ${isReacted ? "border-truth-accentRed/30 bg-truth-accentRed/5" : ""} ${isStory ? "group-hover/btn:border-truth-accentPurple" : "group-hover/btn:border-truth-accentRed"}`}>
+              <Heart className={`w-4 h-4 ${isReacted ? "fill-truth-accentRed text-truth-accentRed" : ""}`} />
             </div>
-            <span className="font-mono text-[10px] uppercase font-bold">{post.reactionCount}</span>
+            <span className="font-mono text-[10px] uppercase font-bold">{reactionCount}</span>
           </button>
           
-          <button className="flex items-center gap-2 text-truth-textGray hover:text-truth-accentBlue transition-all group/btn">
-            <div className="p-2 border border-transparent group-hover/btn:border-truth-accentBlue transition-all">
+          <button 
+            onClick={() => setShowComments(!showComments)}
+            className={`flex items-center gap-2 transition-all group/btn ${showComments ? "text-truth-accentBlue" : "text-truth-textGray"} hover:text-truth-accentBlue`}
+          >
+            <div className={`p-2 border border-transparent transition-all ${showComments ? "border-truth-accentBlue/30 bg-truth-accentBlue/5" : ""} group-hover/btn:border-truth-accentBlue`}>
               <MessageCircle className="w-4 h-4" />
             </div>
-            <span className="font-mono text-[10px] uppercase font-bold">{post.commentCount}</span>
+            <span className="font-mono text-[10px] uppercase font-bold">{commentCount}</span>
           </button>
 
           <button className="flex items-center gap-2 text-truth-textGray hover:text-truth-accentPurple transition-all group/btn">
@@ -341,6 +372,56 @@ export function PostCard({ post }: { post: PostWithRelations }) {
           <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
         </button>
       </div>
+
+      {/* Comment Trace Input */}
+      <AnimatePresence>
+        {showComments && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden border-t border-truth-midGray/50 mt-4 pt-4"
+          >
+            <form 
+              action={async (formData) => {
+                const text = formData.get("content") as string
+                if (!text.trim()) return
+                
+                // Optimistic
+                setCommentCount(prev => prev + 1)
+                setCommentText("")
+                
+                startTransition(async () => {
+                  const res = await createComment(formData)
+                  if (res.error) {
+                    setCommentCount(prev => prev - 1)
+                    setCommentText(text)
+                  }
+                })
+              }}
+              className="flex items-center gap-3"
+            >
+              <input type="hidden" name="postId" value={post.id} />
+              <input 
+                type="text" 
+                name="content"
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                placeholder="Synchronize comment signal..."
+                className="flex-1 bg-truth-nearBlack border border-truth-midGray px-4 py-2 font-mono text-[10px] text-truth-textLight placeholder:text-truth-textGray/40 focus:outline-none focus:border-truth-accentBlue transition-colors"
+                disabled={isPending}
+              />
+              <button 
+                type="submit"
+                disabled={isPending || !commentText.trim()}
+                className="px-4 py-2 bg-truth-accentBlue/20 border border-truth-accentBlue text-truth-accentBlue font-mono text-[9px] uppercase font-bold hover:bg-truth-accentBlue hover:text-truth-bg transition-all disabled:opacity-30"
+              >
+                EMIT
+              </button>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Decorative Corner */}
       <div className="absolute top-0 right-0 w-8 h-8 pointer-events-none overflow-hidden">

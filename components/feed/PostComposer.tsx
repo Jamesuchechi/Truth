@@ -29,10 +29,12 @@ interface NodeMedia {
 
 export default function PostComposer({ 
   user: _user,
-  defaultChannelId 
+  defaultChannelId,
+  onComplete,
 }: { 
   user: { id: string },
   defaultChannelId?: string
+  onComplete?: () => void
 }) {
   const [activeType, setActiveType] = useState<PostType>("STANDARD")
   const [nodes, setNodes] = useState<string[]>([""])
@@ -157,6 +159,7 @@ export default function PostComposer({
         setNodeMedia([[]])
         localStorage.removeItem("truth-draft")
         setIsPreview(false)
+        if (onComplete) onComplete()
       }
     })
   }
@@ -180,10 +183,11 @@ export default function PostComposer({
             className={`
               px-6 py-2 font-mono text-[10px] uppercase tracking-widest transition-all
               ${activeType === t 
-                ? "bg-truth-nearBlack text-truth-accentRed border-2 border-truth-midGray border-b-truth-nearBlack z-10 -mb-[2px]" 
-                : "bg-truth-nearBlack/40 text-truth-textGray border-2 border-truth-midGray/50 hover:text-truth-textLight"}
+                ? "bg-truth-nearBlack text-truth-accentRed border-2 border-truth-midGray border-b-truth-nearBlack z-10 -mb-[2px] opacity-100" 
+                : "bg-truth-nearBlack/60 text-truth-textGray/80 border-2 border-truth-midGray/50 hover:text-truth-textLight hover:bg-truth-nearBlack hover:border-truth-textGray/40 opacity-70 hover:opacity-100"}
             `}
           >
+            {t}
           </button>
         ))}
         {(["LIMITED"] as PostType[]).map((t) => (
@@ -197,8 +201,8 @@ export default function PostComposer({
             className={`
               px-6 py-2 font-mono text-[10px] uppercase tracking-widest transition-all
               ${activeType === t 
-                ? "bg-truth-nearBlack text-truth-accentBlue border-2 border-truth-midGray border-b-truth-nearBlack z-10 -mb-[2px]" 
-                : "bg-truth-nearBlack/40 text-truth-textGray border-2 border-truth-midGray/50 hover:text-truth-textLight"}
+                ? "bg-truth-nearBlack text-truth-accentBlue border-2 border-truth-midGray border-b-truth-nearBlack z-10 -mb-[2px] opacity-100" 
+                : "bg-truth-nearBlack/60 text-truth-textGray/80 border-2 border-truth-midGray/50 hover:text-truth-textLight hover:bg-truth-nearBlack hover:border-truth-textGray/40 opacity-70 hover:opacity-100"}
             `}
           >
             {t}
