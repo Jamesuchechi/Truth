@@ -74,8 +74,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const passwordsMatch = await bcrypt.compare(password, user.passwordHash)
 
           if (passwordsMatch) {
-            // Check for email verification
-            if (!user.emailVerified) return null
             return user
           }
         }
@@ -157,12 +155,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const existingUser = await prisma.user.findUnique({
         where: { id: user.id }
       })
+      if (!existingUser) return false
 
       // Skip verification check for anonymous users
       if (existingUser?.isAnonymous) return true
 
-      // Prevent sign in without email verification
-      if (!existingUser?.emailVerified) return false
+      // Skip verification check for now to allow login after sign up
+      // if (!existingUser?.emailVerified) return false
 
       if (existingUser.isTwoFactorEnabled) {
         const twoFactorConfirmation = await prisma.twoFactorConfirmation.findUnique({
