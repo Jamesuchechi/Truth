@@ -22,7 +22,7 @@ export default async function FeedPage() {
   })
 
   return (
-    <div className="max-w-4xl mx-auto px-8 py-12">
+    <div className="max-w-6xl mx-auto px-8 py-12">
       {/* Feed Header */}
       <header className="mb-16 relative">
         <div className="flex items-end justify-between border-b-4 border-truth-midGray pb-6">
