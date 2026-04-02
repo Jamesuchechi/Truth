@@ -15,6 +15,7 @@
     --accent-purple: #9D50BB;
     --accent-blue: #6E48AA;
     --accent-green: #10B981;
+    --accent-yellow: #F59E0B;
 }
 
 @theme {
@@ -27,6 +28,7 @@
   --color-truth-accentRed: var(--accent-red);
   --color-truth-accentPurple: var(--accent-purple);
   --color-truth-accentBlue: var(--accent-blue);
+  --color-truth-accentYellow: var(--accent-yellow);
 }
 
 body {

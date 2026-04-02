@@ -1,6 +1,17 @@
-import { Terminal as TerminalIcon, Inbox as InboxIcon } from "lucide-react"
+import { Terminal as TerminalIcon } from "lucide-react"
+import { getInboxThreads } from "@/lib/actions/messageActions"
+import { auth } from "@/auth"
+import { redirect } from "next/navigation"
+import InboxClient from "./InboxClient"
 
 export default async function InboxPage() {
+  const session = await auth()
+  
+  if (!session?.user?.id) {
+    redirect("/login")
+  }
+
+  const messages = await getInboxThreads()
   
   return (
     <div className="max-w-4xl mx-auto px-8 py-12">
@@ -19,22 +30,12 @@ export default async function InboxPage() {
               <div className="w-2 h-2 bg-truth-accentGreen animate-pulse" />
               <div className="w-2 h-2 bg-truth-accentGreen animate-pulse opacity-50" />
             </div>
-            <span className="font-mono text-[9px] text-truth-textGray uppercase">ENCRYPTION: AES-256</span>
+            <span className="font-mono text-[9px] text-truth-textGray uppercase tracking-widest font-black">ENCRYPTION: AES-256</span>
           </div>
         </div>
       </header>
 
-      <div className="py-24 text-center border-4 border-dashed border-truth-midGray bg-truth-darkGray/30">
-         <div className="mb-6 flex justify-center">
-           <div className="w-20 h-20 bg-truth-nearBlack border-2 border-truth-midGray flex items-center justify-center rotate-45">
-             <InboxIcon className="w-10 h-10 text-truth-textGray/40 -rotate-45" />
-           </div>
-         </div>
-         <h2 className="font-bitter font-black text-2xl text-truth-textLight uppercase tracking-tighter">NO TRANSMISSIONS</h2>
-         <p className="font-mono text-xs text-truth-textGray uppercase tracking-widest mt-2 max-w-sm mx-auto leading-relaxed">
-           The secure channel is clear. No incoming data packets detected.
-         </p>
-      </div>
+      <InboxClient initialMessages={messages} />
     </div>
   )
 }

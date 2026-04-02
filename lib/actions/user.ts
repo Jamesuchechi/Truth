@@ -6,6 +6,7 @@ import { auth, signIn, signOut } from "@/auth"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
 import { AuthError } from "next-auth"
+import { ToneType } from "@prisma/client"
 import { rateLimit } from "@/lib/rate-limit"
 import { generateVerificationToken, generatePasswordResetToken } from "@/lib/tokens"
 import { sendVerificationEmail, sendPasswordResetEmail } from "@/lib/mail"
@@ -43,6 +44,12 @@ const SettingsSchema = z.object({
   image: z.string().url().optional().or(z.literal("")),
   securityQuestion: z.string().optional(),
   securityAnswer: z.string().optional(),
+  inboxEnabled: z.boolean().optional(),
+  allowAnonymousMsg: z.boolean().optional(),
+  questionsOnlyMode: z.boolean().optional(),
+  allowedTones: z.array(z.nativeEnum(ToneType)).optional(),
+  blockedPhrases: z.array(z.string()).optional(),
+  messageCooldown: z.number().min(0).max(1440).optional(),
 })
 
 export async function loginUser(prevState: ActionState, formData: FormData): Promise<ActionState> {
@@ -346,6 +353,13 @@ export async function updateSettings(values: z.infer<typeof SettingsSchema>): Pr
     updateData.securityQuestion = values.securityQuestion
     updateData.securityAnswer = await bcrypt.hash(values.securityAnswer, 10)
   }
+
+  if (typeof values.inboxEnabled !== 'undefined') updateData.inboxEnabled = values.inboxEnabled
+  if (typeof values.allowAnonymousMsg !== 'undefined') updateData.allowAnonymousMsg = values.allowAnonymousMsg
+  if (typeof values.questionsOnlyMode !== 'undefined') updateData.questionsOnlyMode = values.questionsOnlyMode
+  if (values.allowedTones !== undefined) updateData.allowedTones = values.allowedTones
+  if (values.blockedPhrases !== undefined) updateData.blockedPhrases = values.blockedPhrases
+  if (typeof values.messageCooldown !== 'undefined') updateData.messageCooldown = values.messageCooldown
 
   await prisma.user.update({
     where: { id: session.user.id },

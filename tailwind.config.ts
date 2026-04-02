@@ -24,6 +24,7 @@ const config: Config = {
           accentPurple: "#9D50BB",
           accentBlue: "#6E48AA",
           accentGreen: "#10B981",
+          accentYellow: "#F59E0B",
           // Deprecated/Compatibility keys
           accent: "#FF3366", // Redirecting accent to Red for brutalist look
           muted: "#888888",

@@ -17,6 +17,15 @@ declare module "next-auth" {
     isAnonymous?: boolean
     role?: string
     emailVerified?: Date | null
+    bio?: string | null
+    image?: string | null
+    securityQuestion?: string | null
+    inboxEnabled?: boolean
+    allowAnonymousMsg?: boolean
+    questionsOnlyMode?: boolean
+    allowedTones?: string[] // ToneType[] as strings
+    blockedPhrases?: string[]
+    messageCooldown?: number
   }
   interface Session {
     user: {
@@ -26,6 +35,15 @@ declare module "next-auth" {
       isTwoFactorEnabled?: boolean
       isAnonymous?: boolean
       role?: string
+      bio?: string | null
+      image?: string | null
+      securityQuestion?: string | null
+      inboxEnabled?: boolean
+      allowAnonymousMsg?: boolean
+      questionsOnlyMode?: boolean
+      allowedTones?: string[]
+      blockedPhrases?: string[]
+      messageCooldown?: number
     } & DefaultSession["user"]
   }
 }
@@ -38,6 +56,15 @@ declare module "next-auth/jwt" {
     isTwoFactorEnabled?: boolean
     isAnonymous?: boolean
     role?: string
+    bio?: string | null
+    image?: string | null
+    securityQuestion?: string | null
+    inboxEnabled?: boolean
+    allowAnonymousMsg?: boolean
+    questionsOnlyMode?: boolean
+    allowedTones?: string[]
+    blockedPhrases?: string[]
+    messageCooldown?: number
   }
 }
 
@@ -99,9 +126,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.isTwoFactorEnabled = !!user.isTwoFactorEnabled
         token.isAnonymous = user.isAnonymous
         token.role = user.role
+        token.bio = user.bio
+        token.image = user.image
+        token.securityQuestion = user.securityQuestion
+        token.inboxEnabled = user.inboxEnabled
+        token.allowAnonymousMsg = user.allowAnonymousMsg
+        token.questionsOnlyMode = user.questionsOnlyMode
+        token.allowedTones = user.allowedTones
+        token.blockedPhrases = user.blockedPhrases
+        token.messageCooldown = user.messageCooldown
       }
       if (trigger === "update" && session) {
         token.username = session.username
+        token.bio = session.bio
+        token.image = session.image
+        token.inboxEnabled = session.inboxEnabled
+        token.allowAnonymousMsg = session.allowAnonymousMsg
+        token.questionsOnlyMode = session.questionsOnlyMode
+        token.allowedTones = session.allowedTones
+        token.blockedPhrases = session.blockedPhrases
+        token.messageCooldown = session.messageCooldown
       }
       return token
     },
@@ -113,6 +157,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.isTwoFactorEnabled = token.isTwoFactorEnabled as boolean
         session.user.isAnonymous = token.isAnonymous as boolean
         session.user.role = token.role as string
+        session.user.bio = token.bio as string
+        session.user.image = token.image as string
+        session.user.securityQuestion = token.securityQuestion as string
+        session.user.inboxEnabled = token.inboxEnabled as boolean
+        session.user.allowAnonymousMsg = token.allowAnonymousMsg as boolean
+        session.user.questionsOnlyMode = token.questionsOnlyMode as boolean
+        session.user.allowedTones = token.allowedTones as string[]
+        session.user.blockedPhrases = token.blockedPhrases as string[]
+        session.user.messageCooldown = token.messageCooldown as number
       }
       return session
     },

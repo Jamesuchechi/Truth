@@ -37,6 +37,11 @@ model User {
   // Settings
   inboxEnabled      Boolean   @default(true)
   allowAnonymousMsg Boolean   @default(true)
+  questionsOnlyMode Boolean   @default(false)
+  allowedTones      ToneType[]
+  blockedPhrases    String[]
+  messageCooldown   Int       @default(0) // Minutes between messages
+  emailNotifications Boolean   @default(true) // Notify via email on new signals
   isTwoFactorEnabled Boolean  @default(false)
   role              Role      @default(USER)
   twoFactorConfirmation TwoFactorConfirmation?
@@ -63,6 +68,7 @@ model User {
   following         Follow[]  @relation("Follower")
   blocks            Block[]   @relation("Blocker")
   blocked           Block[]   @relation("Blocked")
+  messageBlocks     MessageBlock[] @relation("MessageBlocker")
   reports           Report[]
   
   @@index([username])
@@ -308,17 +314,49 @@ model Message {
   
   createdAt   DateTime    @default(now())
   readAt      DateTime?
+  deletedAt   DateTime?
   
+  isArchived  Boolean     @default(false)
+  isFavorite  Boolean     @default(false)
+
+  // Sender choice
+  revealSender Boolean    @default(false)
+  senderFingerprint String?
+
   // Public reply
   repliedWithPostId String?
   
+  // Threading
+  parentId    String?
+  parent      Message?    @relation("MessageThread", fields: [parentId], references: [id])
+  replies     Message[]   @relation("MessageThread")
+
+  // Voice Messaging (New for Advanced Features)
+  audioUrl      String?
+  transcription String?
+
   // Relations
   receiver    User        @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
   sender      User?       @relation("MessageSender", fields: [senderId], references: [id])
+  reports     Report[]
   
   @@index([receiverId])
   @@index([senderId])
   @@index([createdAt])
+  @@index([parentId])
+  @@index([senderFingerprint])
+}
+
+model MessageBlock {
+  id              String   @id @default(cuid())
+  blockerId       String
+  blockedFingerprint String
+  createdAt       DateTime @default(now())
+
+  blocker         User     @relation("MessageBlocker", fields: [blockerId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedFingerprint])
+  @@index([blockerId])
 }
 
 enum MessageType {
@@ -326,6 +364,7 @@ enum MessageType {
   CONFESSION
   QUESTION
   COMPLIMENT
+  VOICE
 }
 
 enum ToneType {
@@ -414,6 +453,7 @@ model Report {
   id          String       @id @default(cuid())
   reporterId  String
   postId      String?
+  messageId   String?
   reason      ReportReason
   description String?
   
@@ -424,9 +464,11 @@ model Report {
   
   reporter    User         @relation(fields: [reporterId], references: [id], onDelete: Cascade)
   post        Post?        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  message     Message?     @relation(fields: [messageId], references: [id], onDelete: Cascade)
   
   @@index([reporterId])
   @@index([postId])
+  @@index([messageId])
   @@index([status])
 }
 
