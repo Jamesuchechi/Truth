@@ -5,9 +5,10 @@ import { prisma } from "@/lib/db/prisma"
 import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import type { VisibilityType, MediaType } from "@prisma/client"
+import type { VisibilityType, MediaType, ToneType } from "@prisma/client"
 import { postInclude } from "@/lib/types/post"
 import { syncUserReputation } from "./reputation"
+import { checkToxicity, detectTone } from "@/lib/ai/toxicity"
 
 const MediaItemSchema = z.object({
   url: z.string().url("Invalid protocol signal URL."),
@@ -75,6 +76,12 @@ export async function createPost(formData: FormData) {
       expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
     }
 
+    // AI Analysis (Synchronous for protocol integrity)
+    const [isToxic, tone] = await Promise.all([
+      checkToxicity(content),
+      detectTone(content)
+    ])
+
     const post = await prisma.post.create({
       data: {
         content,
@@ -85,6 +92,9 @@ export async function createPost(formData: FormData) {
         parentId,
         channelId,
         authoredByTeamId,
+        toxicityScore: isToxic ? 1.0 : 0,
+        tone: tone as ToneType,
+        isFiltered: isToxic,
         viewsLimit: visibility === "LIMITED" ? viewsLimit : null,
         media: media && media.length > 0 ? {
           create: media.map((item, index) => ({
@@ -124,6 +134,11 @@ export async function createThread(
     for (const item of contents) {
        if (hasProfanity(item.content)) return { error: "Content violated protocol: Profanity detected in thread." }
        
+       const [isToxic, tone] = await Promise.all([
+         checkToxicity(item.content),
+         detectTone(item.content)
+       ])
+
        const newPost: { id: string } = await prisma.post.create({
          data: {
            content: item.content,
@@ -131,6 +146,9 @@ export async function createThread(
            useShadowId: useShadow,
            parentId: lastId,
            channelId,
+           toxicityScore: isToxic ? 1.0 : 0,
+           tone: tone as ToneType,
+           isFiltered: isToxic,
            media: item.media && item.media.length > 0 ? {
              create: item.media.map((m, idx) => ({
                url: m.url,

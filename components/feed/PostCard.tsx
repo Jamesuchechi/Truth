@@ -27,19 +27,23 @@ import ImageCarousel from "./ImageCarousel"
 import PostAnalytics from "./PostAnalytics"
 import { usePostTrack } from "@/hooks/usePostTrack"
 import { updatePost, deletePost, archivePost } from "@/lib/actions/post"
+import { getPostSummary } from "@/lib/actions/summary"
 import { toggleReaction } from "@/lib/actions/reaction"
 import { createComment } from "@/lib/actions/comment"
-import { useTransition } from "react"
+import { useTransition, useCallback } from "react"
 import { ReactionPicker } from "./ReactionPicker"
 import { useReactions } from "@/hooks/useReactions"
 import type { ReactionType } from "@prisma/client"
+import { Terminal, ScanFace } from "lucide-react"
 
 export function PostCard({ 
   post, 
-  isDetail = false 
+  isDetail = false,
+  priority = false
 }: { 
   post: PostWithRelations, 
-  isDetail?: boolean 
+  isDetail?: boolean,
+  priority?: boolean
 }) {
   const { data: session } = useSession()
   const isShadow = post.useShadowId
@@ -71,8 +75,21 @@ export function PostCard({
   const [commentCount, setCommentCount] = useState(post.commentCount)
   const [commentText, setCommentText] = useState("")
 
+  // AI Summary State
+  const [summary, setSummary] = useState<string | null>(null)
+  const [isScanning, setIsScanning] = useState(false)
+
+  const handleScan = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (summary) return
+    setIsScanning(true)
+    const res = await getPostSummary(post.id)
+    if (res.summary) setSummary(res.summary)
+    setIsScanning(false)
+  }, [post.id, summary])
+
   // Tracking
-  const { containerRef } = usePostTrack({ postId: post.id })
+  const { containerRef, trackClick, handleMouseEnter, handleMouseLeave } = usePostTrack({ postId: post.id })
 
   const [canEdit, setCanEdit] = useState(false)
   
@@ -126,6 +143,9 @@ export function PostCard({
   return (
     <motion.div 
       ref={containerRef}
+      onClick={trackClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -302,22 +322,65 @@ export function PostCard({
           </div>
         ) : (
           <div className="space-y-4">
-            <Link href={`/post/${post.id}`} className={isDetail ? "pointer-events-none" : "block group/content"}>
+            <div className={isDetail ? "" : "block group/content relative"}>
               <div className={`font-bitter ${isDetail ? "text-2xl" : "text-xl"} text-truth-textLight leading-relaxed prose prose-invert prose-lg max-w-none selection:bg-truth-accentRed selection:text-truth-bg`}>
                 <ReactMarkdown>{displayContent}</ReactMarkdown>
               </div>
               {!isDetail && isLong && (
-                <span className="font-mono text-[10px] text-truth-accentRed uppercase font-black mt-2 inline-block group-hover/content:translate-x-1 transition-transform">
-                  READ_FULL_SIGNAL {" >>"}
-                </span>
+                <div className="flex items-center gap-4 mt-2 relative z-10">
+                  <Link href={`/p/${post.id}`} className="font-mono text-[10px] text-truth-accentRed uppercase font-black group-hover/content:translate-x-1 transition-transform">
+                    READ_FULL_SIGNAL {" >>"}
+                  </Link>
+                  {!summary && (
+                    <button 
+                      onClick={handleScan}
+                      disabled={isScanning}
+                      className="flex items-center gap-1.5 font-mono text-[9px] text-truth-accentBlue hover:text-truth-textLight uppercase tracking-widest border border-truth-accentBlue/30 px-2 py-0.5 bg-truth-accentBlue/5 transition-all disabled:opacity-50 pointer-events-auto"
+                    >
+                      {isScanning ? (
+                        <>
+                          <div className="w-2 h-2 border border-truth-accentBlue border-t-transparent animate-spin" />
+                          SCANNING...
+                        </>
+                      ) : (
+                        <>
+                          <ScanFace className="w-3 h-3" />
+                          SCAN_SIGNAL
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
               )}
-            </Link>
+              {!isDetail && <Link href={`/p/${post.id}`} className="absolute inset-0 z-0" aria-label="View post detail" />}
+            </div>
           </div>
         )}
 
+        {/* AI Summary Display */}
+        <AnimatePresence>
+          {summary && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              className="bg-truth-accentBlue/5 border-l-2 border-truth-accentBlue p-4 relative overflow-hidden"
+            >
+              {/* Scanline Animation */}
+              <div className="absolute inset-0 bg-linear-to-b from-transparent via-truth-accentBlue/10 to-transparent h-4 animate-scanline pointer-events-none" />
+              <div className="flex items-start gap-3 relative z-10">
+                <Terminal className="w-4 h-4 text-truth-accentBlue shrink-0 mt-1" />
+                <p className="font-mono text-[11px] leading-relaxed text-truth-accentBlue uppercase tracking-tight">
+                  <span className="opacity-50">[DECRYPTED_SIGNAL]: </span>
+                  {summary}
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {hasMedia && (
           <div className="my-4">
-            <ImageCarousel media={post.media} />
+            <ImageCarousel media={post.media} priority={priority} />
           </div>
         )}
       </div>

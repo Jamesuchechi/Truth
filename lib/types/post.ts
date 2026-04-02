@@ -38,6 +38,7 @@ export const postInclude = {
   reactions: {
     select: {
       type: true,
+      userId: true,
       createdAt: true,
     }
   }

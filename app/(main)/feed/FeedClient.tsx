@@ -1,12 +1,32 @@
 "use client"
 
-import { useState, useTransition } from "react"
-import { Plus, Zap, Wifi, Globe, Ghost } from "lucide-react"
-import StoriesBar from "@/components/feed/StoriesBar"
-import ComposeModal from "@/components/feed/ComposeModal"
+import { useState, useTransition, useEffect, useRef, useCallback } from "react"
 import { PostCard } from "@/components/feed/PostCard"
 import type { PostWithRelations } from "@/lib/types/post"
-import { getFollowingFeed } from "@/lib/actions/feed"
+import { 
+  getForYouFeed, 
+  getFreshFeed, 
+  getFollowingFeed,
+  getTrendingFeed,
+  getDeepDiveFeed,
+  getQuickHitsFeed
+} from "@/lib/actions/feed"
+import { 
+  Plus, 
+  Wifi, 
+  Ghost, 
+  Flame, 
+  BookOpen, 
+  ZapIcon, 
+  Compass,
+  Clock,
+  Loader2
+} from "lucide-react"
+import StoriesBar from "@/components/feed/StoriesBar"
+import ComposeModal from "@/components/feed/ComposeModal"
+import FeedSkeleton from "@/components/feed/FeedSkeleton"
+
+type FeedTab = "FOR_YOU" | "FRESH" | "FOLLOWING" | "TRENDING" | "DEEP_DIVE" | "QUICK_HITS"
 
 interface FeedClientProps {
   initialPosts: PostWithRelations[]
@@ -18,66 +38,163 @@ interface FeedClientProps {
   }
 }
 
+interface FeedState {
+  posts: PostWithRelations[]
+  cursor: string | null
+  hasMore: boolean
+}
+
 export default function FeedClient({ initialPosts, stories, user }: FeedClientProps) {
-  const [activeTab, setActiveTab] = useState<"GLOBAL" | "FOLLOWING">("GLOBAL")
-  const [followingPosts, setFollowingPosts] = useState<PostWithRelations[]>([])
+  const [activeTab, setActiveTab] = useState<FeedTab>("FOR_YOU")
+  const [feeds, setFeeds] = useState<Record<FeedTab, FeedState>>({
+    FOR_YOU: { posts: initialPosts, cursor: initialPosts.length > 0 ? initialPosts[initialPosts.length - 1].id : null, hasMore: true },
+    FRESH: { posts: [], cursor: null, hasMore: true },
+    FOLLOWING: { posts: [], cursor: null, hasMore: true },
+    TRENDING: { posts: [], cursor: null, hasMore: true },
+    DEEP_DIVE: { posts: [], cursor: null, hasMore: true },
+    QUICK_HITS: { posts: [], cursor: null, hasMore: true },
+  })
   const [isComposeOpen, setIsComposeOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  
+  const observerTarget = useRef<HTMLDivElement>(null)
 
-  const handleTabChange = (tab: "GLOBAL" | "FOLLOWING") => {
+  const fetchFeed = useCallback(async (tab: FeedTab, cursor?: string | null) => {
+    let res: { posts: PostWithRelations[], nextCursor: string | null }
+    switch (tab) {
+      case "FOR_YOU": res = await getForYouFeed(20, cursor || undefined); break
+      case "FRESH": res = await getFreshFeed(20, cursor || undefined); break
+      case "FOLLOWING": res = await getFollowingFeed(20, cursor || undefined); break
+      case "TRENDING": res = await getTrendingFeed(20, cursor || undefined); break
+      case "DEEP_DIVE": res = await getDeepDiveFeed(10, cursor || undefined); break
+      case "QUICK_HITS": res = await getQuickHitsFeed(15, cursor || undefined); break
+    }
+    return res
+  }, [])
+
+  const handleTabChange = (tab: FeedTab) => {
     setActiveTab(tab)
-    if (tab === "FOLLOWING" && followingPosts.length === 0) {
+    if (feeds[tab].posts.length === 0) {
       startTransition(async () => {
-        const posts = await getFollowingFeed()
-        setFollowingPosts(posts as PostWithRelations[])
+        const res = await fetchFeed(tab)
+        setFeeds(prev => ({ 
+          ...prev, 
+          [tab]: { 
+            posts: res.posts, 
+            cursor: res.nextCursor, 
+            hasMore: !!res.nextCursor 
+          } 
+        }))
       })
     }
   }
 
-  const displayedPosts = activeTab === "GLOBAL" ? initialPosts : followingPosts
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || !feeds[activeTab].hasMore) return
+    
+    setIsLoadingMore(true)
+    const currentCursor = feeds[activeTab].cursor
+    const res = await fetchFeed(activeTab, currentCursor)
+    
+    setFeeds(prev => ({
+      ...prev,
+      [activeTab]: {
+        posts: [...prev[activeTab].posts, ...res.posts],
+        cursor: res.nextCursor,
+        hasMore: !!res.nextCursor
+      }
+    }))
+    setIsLoadingMore(false)
+  }, [activeTab, feeds, fetchFeed, isLoadingMore])
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && feeds[activeTab].hasMore && !isPending && !isLoadingMore) {
+          loadMore()
+        }
+      },
+      { threshold: 0.1, rootMargin: "200px" } // Prefetch when 200px from bottom
+    )
+
+    const currentTarget = observerTarget.current
+
+    if (currentTarget) {
+      observer.observe(currentTarget)
+    }
+
+    return () => {
+      if (currentTarget) observer.unobserve(currentTarget)
+    }
+  }, [loadMore, activeTab, feeds, isPending, isLoadingMore])
+
+  const displayedPosts = feeds[activeTab].posts
 
   return (
     <>
-      {/* Feed Navigation Tabs */}
-      <div className="flex gap-4 mb-10 overflow-x-auto pb-2 scrollbar-none">
-        <button 
-          onClick={() => handleTabChange("GLOBAL")}
-          className={`
-            flex items-center gap-2 px-8 py-3 font-mono text-[10px] uppercase tracking-widest border-2 transition-all shrink-0
-            ${activeTab === "GLOBAL" 
-              ? "bg-truth-nearBlack text-truth-accentRed border-truth-accentRed shadow-[4px_4px_0px_rgba(255,51,102,0.2)]" 
-              : "bg-transparent border-truth-midGray text-truth-textGray hover:border-truth-textGray"}
-          `}
-        >
-          <Globe className="w-3.5 h-3.5" /> GLOBAL_SYNC
-        </button>
-        <button 
-          onClick={() => handleTabChange("FOLLOWING")}
-          className={`
-            flex items-center gap-2 px-8 py-3 font-mono text-[10px] uppercase tracking-widest border-2 transition-all shrink-0
-            ${activeTab === "FOLLOWING" 
-              ? "bg-truth-nearBlack text-truth-accentBlue border-truth-accentBlue shadow-[4px_4px_0px_rgba(30,144,255,0.2)]" 
-              : "bg-transparent border-truth-midGray text-truth-textGray hover:border-truth-textGray"}
-          `}
-        >
-          <Wifi className="w-3.5 h-3.5" /> FOLLOWING_SIGNAL
-        </button>
+      <div className="flex gap-3 mb-10 overflow-x-auto pb-4 hide-scrollbar">
+        {[
+          { id: "FOR_YOU", label: "FOR_YOU", icon: Compass, color: "text-truth-accentRed", border: "border-truth-accentRed" },
+          { id: "FRESH", label: "FRESH_SIGNAL", icon: Clock, color: "text-truth-accentGreen", border: "border-truth-accentGreen" },
+          { id: "FOLLOWING", label: "OBSERVING", icon: Wifi, color: "text-truth-accentBlue", border: "border-truth-accentBlue" },
+          { id: "TRENDING", label: "HIGH_PULSE", icon: Flame, color: "text-truth-accentYellow", border: "border-truth-accentYellow" },
+          { id: "DEEP_DIVE", label: "DEEP_DIVE", icon: BookOpen, color: "text-truth-accentPurple", border: "border-truth-accentPurple" },
+          { id: "QUICK_HITS", label: "QUICK_HITS", icon: ZapIcon, color: "text-truth-textLight", border: "border-truth-textLight" },
+        ].map((tab) => (
+          <button 
+            key={tab.id}
+            onClick={() => handleTabChange(tab.id as FeedTab)}
+            className={`
+              flex items-center gap-2 px-6 py-3 font-mono text-[9px] uppercase tracking-widest border-2 transition-all shrink-0
+              ${activeTab === tab.id 
+                ? `bg-truth-nearBlack ${tab.color} ${tab.border} shadow-[4px_4px_0px_rgba(255,255,255,0.1)]` 
+                : "bg-transparent border-truth-midGray text-truth-textGray hover:border-truth-textGray"}
+            `}
+          >
+            <tab.icon className="w-3 h-3" /> {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* Stories IG Style */}
       <StoriesBar stories={stories} onOpenComposer={() => setIsComposeOpen(true)} />
 
-      {/* Feed Content */}
-      <div className="space-y-8 min-min-h-[600px] mb-20 animate-fadeIn">
+      <div className="space-y-8 min-h-[600px] mb-20">
         {isPending ? (
-          <div className="py-32 text-center">
-            <div className="inline-block w-8 h-8 border-2 border-truth-accentRed border-t-transparent animate-spin mb-4" />
-            <p className="font-mono text-[10px] text-truth-textGray uppercase tracking-[0.3em] animate-pulse">Decrypting Follower Frequency...</p>
-          </div>
+          <FeedSkeleton />
         ) : displayedPosts.length > 0 ? (
-          displayedPosts.map((post) => (
-            <PostCard key={post.id} post={post} />
-          ))
+          <>
+            {displayedPosts.map((post, index) => (
+              <PostCard key={post.id} post={post} priority={index < 2} />
+            ))}
+            
+            <div ref={observerTarget} className="h-20 flex items-center justify-center">
+              {isLoadingMore && (
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 className="w-6 h-6 text-truth-accentRed animate-spin" />
+                  <span className="font-mono text-[8px] text-truth-textGray uppercase tracking-widest">
+                    PULLING_NEXT_SIGNAL_POOL...
+                  </span>
+                </div>
+              )}
+              {!isLoadingMore && feeds[activeTab].hasMore && (
+                <button 
+                  onClick={loadMore}
+                  className="font-mono text-[9px] text-truth-textGray hover:text-truth-textLight uppercase tracking-widest border border-dashed border-truth-midGray/30 px-6 py-2 transition-colors"
+                >
+                  MANUAL_FETCH_OVERRIDE_ENABLED [LOAD_MORE]
+                </button>
+              )}
+              {!feeds[activeTab].hasMore && (
+                <div className="py-10 text-center opacity-30">
+                   <div className="h-px bg-truth-midGray w-24 mx-auto mb-4" />
+                   <p className="font-mono text-[8px] text-truth-textGray uppercase tracking-[0.4em]">
+                     END_OF_OBSERVABLE_STREAM
+                   </p>
+                </div>
+              )}
+            </div>
+          </>
         ) : (
           <div className="py-24 text-center border-4 border-dashed border-truth-midGray bg-truth-nearBlack/20 group">
              <div className="mb-4 flex justify-center">
@@ -92,18 +209,13 @@ export default function FeedClient({ initialPosts, stories, user }: FeedClientPr
         )}
       </div>
 
-      {/* Floating Action Button (X-Style) */}
       <button 
         onClick={() => setIsComposeOpen(true)}
         className="fixed bottom-12 right-12 xl:right-92 w-16 h-16 bg-truth-accentRed shadow-[10px_10px_0px_rgba(0,0,0,0.4)] flex items-center justify-center group hover:-translate-x-1 hover:-translate-y-1 active:translate-x-0 active:translate-y-0 transition-all z-40"
       >
         <Plus className="w-8 h-8 text-truth-bg group-hover:rotate-90 transition-transform duration-300" />
-        <div className="absolute -top-1 -right-1 w-4 h-4 bg-truth-textLight flex items-center justify-center">
-           <Zap className="w-2 h-2 text-truth-bg animate-pulse" />
-        </div>
       </button>
 
-      {/* Compose Modal */}
       <ComposeModal 
         isOpen={isComposeOpen} 
         onClose={() => setIsComposeOpen(false)} 

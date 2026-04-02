@@ -7,9 +7,10 @@ import Image from "next/image"
 
 interface ImageCarouselProps {
   media: { url: string; type: "IMAGE" | "VIDEO" | "AUDIO" }[]
+  priority?: boolean
 }
 
-export default function ImageCarousel({ media }: ImageCarouselProps) {
+export default function ImageCarousel({ media, priority = false }: ImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [direction, setDirection] = useState(0)
 
@@ -76,7 +77,7 @@ export default function ImageCarousel({ media }: ImageCarouselProps) {
             alt={`Transmission Frame ${currentIndex + 1}`}
             fill
             className="object-cover"
-            priority={currentIndex === 0}
+            priority={priority && currentIndex === 0}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
           

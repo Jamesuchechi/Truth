@@ -245,6 +245,11 @@ model Post {
   currentViews    Int       @default(0)
   expiresAt       DateTime?
   
+  // AI Attributes
+  toxicityScore   Float     @default(0)
+  tone            ToneType  @default(NEUTRAL)
+  isFiltered      Boolean   @default(false)
+
   // Metadata
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -568,9 +573,14 @@ model FeedTracking {
   viewed          Boolean  @default(false)
   viewCount       Int      @default(1)
   viewDuration    Int?     // milliseconds
+  hoverDuration   Int?     @default(0) // milliseconds
+  scrollDepth     Int?     @default(0) // percentage (0-100)
   scrolledPast    Boolean  @default(false)
   clickedPost     Boolean  @default(false)
   readComplete    Boolean  @default(false)
+  
+  // Privacy
+  interactionHash String?
   
   // Interaction
   reacted         Boolean  @default(false)
