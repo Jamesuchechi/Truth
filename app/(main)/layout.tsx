@@ -30,13 +30,17 @@ export default async function MainLayout({
             <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-truth-accentBlue/5 blur-[100px]" />
           </div>
           
-          <div className="relative z-10 max-w-4xl mx-auto">
-            {children}
+          <div className="relative z-10 max-w-7xl mx-auto">
+            <div className="flex items-start gap-12">
+               <div className="flex-1 min-w-0">
+                 {children}
+               </div>
+               <div className="hidden xl:block w-80 shrink-0 sticky top-8">
+                 <RightSidebar />
+               </div>
+            </div>
           </div>
         </MainContent>
-
-        {/* Right Sidebar - Sticky on right */}
-        <RightSidebar />
 
         {/* Decorative Border Overlay */}
         <div className="fixed inset-0 border-20 border-truth-nearBlack pointer-events-none z-100 opacity-50" />
