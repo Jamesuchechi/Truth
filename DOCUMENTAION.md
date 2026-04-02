@@ -883,11 +883,11 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get('limit') || '20')
 
   // Get personalized feed using ranking algorithm
-  const posts = await getPersonalizedFeed(session.user.id, cursor, limit)
+  const { posts, nextCursor } = await getPersonalizedFeed(session.user.id, cursor, limit)
 
   return NextResponse.json({
     posts,
-    nextCursor: posts.length === limit ? posts[posts.length - 1].id : null
+    nextCursor
   })
 }
 
