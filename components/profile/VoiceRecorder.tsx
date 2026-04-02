@@ -30,6 +30,18 @@ export default function VoiceRecorder({ onComplete, onCancel }: VoiceRecorderPro
             if (audioUrl) URL.revokeObjectURL(audioUrl)
         }
     }, [audioUrl])
+    
+    // Playback Logic
+    useEffect(() => {
+        if (isPlaying) {
+            audioRef.current?.play().catch(e => {
+                console.error("Playback failed:", e)
+                setIsPlaying(false)
+            })
+        } else {
+            audioRef.current?.pause()
+        }
+    }, [isPlaying])
 
     const startRecording = async () => {
         try {
@@ -138,7 +150,7 @@ export default function VoiceRecorder({ onComplete, onCancel }: VoiceRecorderPro
                             {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current ml-1" />}
                         </button>
 
-                        <button onClick={() => {}} className="p-3 border-2 border-truth-midGray text-truth-textGray hover:text-truth-accentRed hover:border-truth-accentRed transition-all">
+                        <button onClick={resetRecording} className="p-3 border-2 border-truth-midGray text-truth-textGray hover:text-truth-accentRed hover:border-truth-accentRed transition-all">
                             <Trash2 className="w-5 h-5" />
                         </button>
                     </div>

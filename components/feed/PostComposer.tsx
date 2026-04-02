@@ -11,13 +11,15 @@ import {
   Plus, 
   X,
   AlertCircle,
-  Hash
+  Hash,
+  Users
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import ReactMarkdown from "react-markdown"
 import EmojiPicker, { Theme, Categories, type EmojiClickData } from "emoji-picker-react"
 import { createPost, createThread } from "@/lib/actions/post"
 import { getChannels } from "@/lib/actions/channel"
+import { getMyShadowTeams } from "@/lib/actions/teamActions"
 import MediaUploader from "./MediaUploader"
 
 type PostType = "STANDARD" | "STORY" | "THREAD" | "LIMITED"
@@ -28,18 +30,22 @@ interface NodeMedia {
 }
 
 export default function PostComposer({ 
-  user: _user,
+  user,
   defaultChannelId,
   onComplete,
 }: { 
-  user: { id: string },
+  user: { 
+    id: string
+    shadowName?: string | null
+    defaultShadowMode?: boolean
+  },
   defaultChannelId?: string
   onComplete?: () => void
 }) {
   const [activeType, setActiveType] = useState<PostType>("STANDARD")
   const [nodes, setNodes] = useState<string[]>([""])
   const [nodeMedia, setNodeMedia] = useState<NodeMedia[][]>([[]]) // Media array per node
-  const [useShadow, setUseShadow] = useState(false)
+  const [useShadow, setUseShadow] = useState(user.defaultShadowMode || false)
   const [channelId, setChannelId] = useState<string | undefined>(defaultChannelId)
   const [channels, setChannels] = useState<{id: string, name: string}[]>([])
   const [viewsLimit, setViewsLimit] = useState<number>(50)
@@ -48,17 +54,23 @@ export default function PostComposer({
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [lastFocusedIndex, setLastFocusedIndex] = useState(0)
+  const [teams, setTeams] = useState<{id: string, name: string}[]>([])
+  const [selectedTeamId, setSelectedTeamId] = useState<string | undefined>(undefined)
   
   // Ref for the last textarea to focus when adding thread node
   const lastRef = useRef<HTMLTextAreaElement>(null)
 
   // Fetch channels for the selector
   useEffect(() => {
-    const fetchChannels = async () => {
-      const data = await getChannels()
-      setChannels(data.map(c => ({ id: c.id, name: c.name })))
+    const fetchMetadata = async () => {
+      const [channelsData, teamsData] = await Promise.all([
+        getChannels(),
+        getMyShadowTeams()
+      ])
+      setChannels(channelsData.map(c => ({ id: c.id, name: c.name })))
+      setTeams(teamsData.map(t => ({ id: t.id, name: t.name })))
     }
-    fetchChannels()
+    fetchMetadata()
   }, [])
 
   // Auto-save drafts
@@ -148,6 +160,10 @@ export default function PostComposer({
         if (channelId) formData.append("channelId", channelId)
         if (nodeMedia[0]?.length > 0) {
           formData.append("media", JSON.stringify(nodeMedia[0]))
+        }
+        if (selectedTeamId) {
+          formData.append("authoredByTeamId", selectedTeamId)
+          formData.append("useShadow", "true") // Team posts are always shadow
         }
         result = await createPost(formData)
       }
@@ -279,7 +295,7 @@ export default function PostComposer({
                   )}
                 </div>
 
-                {/* Media Uploader for this node */}
+                {/* Messages Scroll Area */}
                 {!isPreview && (
                    <MediaUploader 
                      onMediaChange={(media) => handleMediaChange(i, media)} 
@@ -322,12 +338,37 @@ export default function PostComposer({
                <button
                  type="button"
                  onClick={() => setUseShadow(!useShadow)}
-                 className={`p-2 transition-all group relative ${useShadow ? "text-truth-accentRed" : "text-truth-textGray"}`}
+                 className={`p-2 transition-all group relative flex items-center gap-2 ${useShadow ? "text-truth-accentRed" : "text-truth-textGray"}`}
                  title="Identity Switch"
                >
                  <Ghost className={`w-5 h-5 ${useShadow ? "animate-pulse" : ""}`} />
+                 {useShadow && user.shadowName && (
+                   <span className="font-mono text-[9px] uppercase tracking-widest hidden md:inline animate-fadeIn">
+                     {user.shadowName}
+                   </span>
+                 )}
                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-current opacity-20" />
                </button>
+
+               {/* Team Selector (Advanced Feature) */}
+               {teams.length > 0 && (
+                 <div className="flex items-center gap-2 px-3 py-1.5 border border-truth-midGray/50 bg-truth-darkGray/50 focus-within:border-truth-accentBlue transition-all">
+                   <Users className="w-3.5 h-3.5 text-truth-textGray" />
+                   <select 
+                     value={selectedTeamId || ""} 
+                     onChange={(e) => {
+                       setSelectedTeamId(e.target.value || undefined)
+                       if (e.target.value) setUseShadow(true)
+                     }}
+                     className="bg-transparent border-none focus:ring-0 font-mono text-[9px] text-truth-textLight uppercase tracking-widest outline-none cursor-pointer"
+                   >
+                     <option value="" className="bg-truth-nearBlack">Personal_Mask</option>
+                     {teams.map(t => (
+                       <option key={t.id} value={t.id} className="bg-truth-nearBlack">{t.name}_Collective</option>
+                     ))}
+                   </select>
+                 </div>
+               )}
 
                <div className="w-px h-6 bg-truth-midGray/50" />
 

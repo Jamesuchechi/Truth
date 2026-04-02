@@ -1,23 +1,30 @@
 "use client"
 
-import { TrendingUp, Zap, Link as LinkIcon, MessageSquare, Heart } from "lucide-react"
+import { TrendingUp, Zap, Link as LinkIcon, MessageSquare, Heart, Ghost, UserPlus } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { getTrendingPosts } from "@/lib/actions/post"
+import { getSuggestedShadows } from "@/lib/actions/feed"
 import { formatRelativeTime } from "@/lib/utils"
 import type { PostWithRelations } from "@/lib/types/post"
+import type { SuggestedShadow } from "@/lib/types/user"
 
 export default function RightSidebar() {
   const [trending, setTrending] = useState<PostWithRelations[]>([])
+  const [suggestions, setSuggestions] = useState<SuggestedShadow[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const fetchTrending = async () => {
-      const data = await getTrendingPosts(5)
-      setTrending(data as PostWithRelations[])
+    const fetchData = async () => {
+      const [trendingData, shadowData] = await Promise.all([
+        getTrendingPosts(5),
+        getSuggestedShadows(3)
+      ])
+      setTrending(trendingData as PostWithRelations[])
+      setSuggestions(shadowData)
       setIsLoading(false)
     }
-    fetchTrending()
+    fetchData()
   }, [])
 
   return (
@@ -71,6 +78,59 @@ export default function RightSidebar() {
             ) : (
               <p className="font-mono text-[9px] text-truth-textGray uppercase italic">
                 NO_SIGNALS_DETECTED_IN_ORBIT
+              </p>
+            )}
+          </div>
+        </section>
+
+        {/* Suggested Shadows Section */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <Ghost className="w-4 h-4 text-truth-accentBlue" />
+            <h2 className="font-mono text-xs font-black uppercase tracking-widest text-truth-textLight">
+              SHADOW_NODES_DETECTION
+            </h2>
+          </div>
+          
+          <div className="space-y-4">
+            {isLoading ? (
+              [...Array(3)].map((_, i) => (
+                <div key={i} className="animate-pulse flex items-center gap-3">
+                  <div className="w-8 h-8 bg-truth-midGray/20 rounded-sm" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-2 bg-truth-midGray/20 w-3/4" />
+                    <div className="h-2 bg-truth-midGray/10 w-1/2" />
+                  </div>
+                </div>
+              ))
+            ) : suggestions.length > 0 ? (
+              suggestions.map((user) => (
+                <div key={user.id} className="flex items-center justify-between group">
+                  <Link href={`/${user.username}`} className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-truth-nearBlack border border-truth-midGray flex items-center justify-center font-mono text-[10px] text-truth-accentBlue group-hover:border-truth-accentBlue transition-colors">
+                      ID
+                    </div>
+                    <div>
+                      <p className="font-bitter text-[10px] font-black text-truth-textLight uppercase truncate w-24">
+                        {user.shadowName || user.username}
+                      </p>
+                      <p className="font-mono text-[7px] text-truth-textGray uppercase">
+                        Rep: {user.reputationTier}
+                      </p>
+                    </div>
+                  </Link>
+                  <Link 
+                    href={`/${user.username}`}
+                    className="p-1.5 border border-truth-midGray hover:border-truth-accentBlue hover:text-truth-accentBlue transition-all text-truth-textGray hover:shadow-[0_0_10px_rgba(30,144,255,0.2)]"
+                    title="Observe Node"
+                  >
+                    <UserPlus className="w-3 h-3" />
+                  </Link>
+                </div>
+              ))
+            ) : (
+              <p className="font-mono text-[8px] text-truth-textGray uppercase italic">
+                No nearby shadow signals...
               </p>
             )}
           </div>

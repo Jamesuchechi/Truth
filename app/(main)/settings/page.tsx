@@ -1,14 +1,23 @@
 import SettingsForm from "@/components/auth/SettingsForm"
+import ShadowManagement from "@/components/profile/ShadowManagement"
+import { auth } from "@/auth"
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const session = await auth()
+  
   return (
-    <div className="max-w-4xl mx-auto py-12 px-6">
+    <div className="max-w-6xl mx-auto py-12 px-6 space-y-12 animate-fadeIn">
       <div className="mb-12">
-        <h1 className="font-bitter text-5xl font-black text-truth-textLight uppercase tracking-tight mb-4">Network Settings</h1>
-        <p className="font-mono text-sm text-truth-textGray uppercase tracking-widest">Adjust your internal status and security protocols</p>
+        <h1 className="font-bitter text-6xl font-black text-truth-textLight uppercase tracking-tighter mb-4">Network_Protocols</h1>
+        <p className="font-mono text-sm text-truth-textGray uppercase tracking-[0.3em]">Adjust your internal status and security nodes</p>
       </div>
       
-      <SettingsForm />
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-12 items-start">
+        <SettingsForm />
+        <div className="space-y-12">
+          {session?.user && <ShadowManagement user={session.user} />}
+        </div>
+      </div>
     </div>
   )
 }

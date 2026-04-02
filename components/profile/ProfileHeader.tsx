@@ -2,9 +2,11 @@
 
 import { Shield, Calendar, Hash, Zap } from "lucide-react"
 import Image from "next/image"
+import FollowButton from "./FollowButton"
 
 interface ProfileHeaderProps {
   user: {
+    id: string
     username: string
     image?: string | null
     bio?: string | null
@@ -17,9 +19,17 @@ interface ProfileHeaderProps {
       following: number
     }
   }
+  isFollowing: boolean
+  isMutual: boolean
+  isOwnProfile: boolean
 }
 
-export default function ProfileHeader({ user }: ProfileHeaderProps) {
+export default function ProfileHeader({ 
+  user, 
+  isFollowing, 
+  isMutual, 
+  isOwnProfile 
+}: ProfileHeaderProps) {
   const joinDate = new Date(user.createdAt).toLocaleDateString('en-US', {
     month: 'long',
     year: 'numeric'
@@ -61,6 +71,15 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
               <div className="flex items-center gap-1 px-3 py-1 bg-truth-accentGreen/10 border border-truth-accentGreen text-truth-accentGreen font-mono text-[10px] uppercase tracking-widest">
                 <Shield className="w-3 h-3" /> External Verified
               </div>
+            )}
+            
+            {!isOwnProfile && (
+              <FollowButton 
+                targetId={user.id} 
+                initialIsFollowing={isFollowing} 
+                isMutual={isMutual}
+                className="ml-auto md:ml-4"
+              />
             )}
           </div>
 

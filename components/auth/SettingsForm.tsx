@@ -1,34 +1,62 @@
 "use client"
 
 import { useState } from "react"
-import { updateSettings, deleteAccount, type ActionState } from "@/lib/actions/user"
+import { updateSettings, deleteAccount, checkShadowNameAvailability, type ActionState } from "@/lib/actions/user"
 import { useSession } from "next-auth/react"
-import { Loader2, Mail, Lock, Shield, Trash2, CheckCircle2, AlertCircle, Globe, MessageSquareCode, Filter, Ban, Timer, ToggleLeft } from "lucide-react"
+import { Loader2, Mail, Lock, Shield, Trash2, CheckCircle2, AlertCircle, Globe, MessageSquareCode, Filter, Ban, Timer, ToggleLeft, Fingerprint, RefreshCw } from "lucide-react"
 import { ToneType } from "@prisma/client"
+import { generateShadowName, isProfane } from "@/lib/utils/shadow"
 import TwoFactorSetup from "./TwoFactorSetup"
 import Link from "next/link"
 
+interface ShadowUser {
+  username?: string
+  email?: string
+  isTwoFactorEnabled?: boolean
+  bio?: string
+  image?: string
+  securityQuestion?: string
+  inboxEnabled?: boolean
+  allowAnonymousMsg?: boolean
+  questionsOnlyMode?: boolean
+  allowedTones?: string[]
+  blockedPhrases?: string[]
+  messageCooldown?: number
+  shadowName?: string
+  shadowBio?: string
+}
+
 export default function SettingsForm() {
   const { data: session, update } = useSession()
+  const user = session?.user as ShadowUser | undefined
+
   const [isPending, setIsPending] = useState(false)
   const [state, setState] = useState<ActionState>({})
   
   const [formData, setFormData] = useState({
-    username: session?.user?.username || "",
-    email: session?.user?.email || "",
+    username: user?.username || "",
+    email: user?.email || "",
     password: "",
     newPassword: "",
-    isTwoFactorEnabled: session?.user?.isTwoFactorEnabled || false,
-    bio: session?.user?.bio || "", 
-    image: session?.user?.image || "",
-    securityQuestion: session?.user?.securityQuestion || "",
+    isTwoFactorEnabled: user?.isTwoFactorEnabled || false,
+    bio: user?.bio || "", 
+    image: user?.image || "",
+    securityQuestion: user?.securityQuestion || "",
     securityAnswer: "",
-    inboxEnabled: session?.user?.inboxEnabled ?? true,
-    allowAnonymousMsg: session?.user?.allowAnonymousMsg ?? true,
-    questionsOnlyMode: session?.user?.questionsOnlyMode ?? false,
-    allowedTones: (session?.user?.allowedTones as ToneType[]) || [],
-    blockedPhrases: (session?.user?.blockedPhrases as string[])?.join(", ") || "",
-    messageCooldown: session?.user?.messageCooldown || 0,
+    inboxEnabled: user?.inboxEnabled ?? true,
+    allowAnonymousMsg: user?.allowAnonymousMsg ?? true,
+    questionsOnlyMode: user?.questionsOnlyMode ?? false,
+    allowedTones: (user?.allowedTones as ToneType[]) || [],
+    blockedPhrases: (user?.blockedPhrases as string[])?.join(", ") || "",
+    messageCooldown: user?.messageCooldown || 0,
+    shadowName: user?.shadowName || "",
+    shadowBio: user?.shadowBio || "",
+  })
+
+  const [shadowAvailability, setShadowAvailability] = useState<{ checked: boolean, available: boolean, loading: boolean }>({
+    checked: false,
+    available: true,
+    loading: false
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -147,6 +175,78 @@ export default function SettingsForm() {
                     placeholder="https://reality.app/your-image.jpg"
                     className="w-full bg-truth-bg border-2 border-truth-midGray p-4 pl-12 text-truth-textLight font-mono focus:border-truth-accentRed outline-none"
                   />
+                </div>
+              </div>
+
+              {/* NEW: Shadow Identity Protocol */}
+              <div className="pt-8 border-t border-truth-midGray space-y-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-truth-accentPurple/20 flex items-center justify-center">
+                    <Fingerprint className="w-4 h-4 text-truth-accentPurple" />
+                  </div>
+                  <h4 className="font-bitter text-xl font-black text-truth-textLight uppercase tracking-tight">Shadow Identity Protocol</h4>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-end gap-4">
+                    <div className="flex-1 space-y-2">
+                      <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-textGray">Shadow Designation</label>
+                      <div className="relative">
+                        <input
+                          value={formData.shadowName}
+                          onChange={async (e) => {
+                            const val = e.target.value
+                            setFormData({...formData, shadowName: val})
+                            if (val.length >= 3) {
+                              setShadowAvailability(prev => ({ ...prev, loading: true }))
+                              const res = await checkShadowNameAvailability(val)
+                              setShadowAvailability({
+                                checked: true,
+                                available: !!res.available,
+                                loading: false
+                              })
+                            } else {
+                              setShadowAvailability({ checked: false, available: false, loading: false })
+                            }
+                          }}
+                          className={`w-full bg-truth-bg border-2 p-4 text-truth-textLight font-mono focus:border-truth-accentPurple outline-none ${shadowAvailability.checked ? (shadowAvailability.available ? 'border-truth-accentGreen' : 'border-truth-accentRed') : 'border-truth-midGray'}`}
+                          placeholder="Assign anonymous ID..."
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newName = generateShadowName()
+                        setFormData({...formData, shadowName: newName})
+                        setShadowAvailability({ checked: true, available: true, loading: false })
+                      }}
+                      className="p-4 bg-truth-bg border-2 border-truth-midGray text-truth-textGray hover:text-truth-accentPurple hover:border-truth-accentPurple transition-all"
+                      title="Auto-Generate Shadow Designation"
+                    >
+                      <RefreshCw className="w-5 h-5" />
+                    </button>
+                  </div>
+                  {shadowAvailability.checked && !shadowAvailability.loading && (
+                    <p className={`font-mono text-[8px] uppercase ${shadowAvailability.available ? 'text-truth-accentGreen' : 'text-truth-accentRed'}`}>
+                      {shadowAvailability.available ? 'Identity Unique / Safe to Index' : 'Identity Conflict / Index Failed'}
+                    </p>
+                  )}
+                  {formData.shadowName && isProfane(formData.shadowName) && (
+                    <p className="font-mono text-[8px] uppercase text-truth-accentRed italic">Identity Protocol Breach: Restricted Phrases Detected</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-textGray">Anonymous Designation / Bio</label>
+                  <textarea
+                    value={formData.shadowBio}
+                    onChange={(e) => setFormData({...formData, shadowBio: e.target.value})}
+                    rows={2}
+                    placeholder="Describe your shadow presence..."
+                    className="w-full bg-truth-bg border-2 border-truth-midGray p-4 text-truth-textLight font-mono focus:border-truth-accentPurple outline-none resize-none"
+                  />
+                  <p className="font-mono text-[8px] text-truth-textGray uppercase">This will only be displayed when manifesting in Shadow Mode.</p>
                 </div>
               </div>
 

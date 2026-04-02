@@ -43,7 +43,24 @@ model User {
   messageCooldown   Int       @default(0) // Minutes between messages
   emailNotifications Boolean   @default(true) // Notify via email on new signals
   isTwoFactorEnabled Boolean  @default(false)
+  followerCountPublic Boolean @default(true)
+  defaultShadowMode   Boolean @default(false)
+  showShadowOnProfile Boolean @default(true)
   role              Role      @default(USER)
+  status            UserStatus @default(ACTIVE)
+  
+  // Reputation (Phase 5)
+  reputationScore   Int       @default(0)
+  reputationTier    ReputationTier @default(DRIFTER)
+  endorsements      Int       @default(0)
+  lastReputationSync DateTime?
+  
+  // Shadow Identity NFT (New for Advanced Tier)
+  nftTokenId        String?   @unique
+  nftMintedAt       DateTime?
+  nftContractAddress String?
+  nftStatus         NftStatus @default(NOT_MINTED)
+  
   twoFactorConfirmation TwoFactorConfirmation?
   
   // Security Questions
@@ -70,6 +87,13 @@ model User {
   blocked           Block[]   @relation("Blocked")
   messageBlocks     MessageBlock[] @relation("MessageBlocker")
   reports           Report[]
+  notificationsReceived Notification[] @relation("NotificationRecipient")
+  notificationsSent Notification[] @relation("NotificationSender")
+  
+  // Advanced Messaging & Collaboration (New)
+  participatingChats ConversationParticipant[]
+  teamMemberships    TeamMember[]
+  authoredPosts      PostAuthor[]
   
   @@index([username])
   @@index([shadowName])
@@ -90,6 +114,29 @@ model UsernameHistory {
 enum Role {
   USER
   ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  RESTRICTED
+  SUSPENDED
+  BANNED
+}
+ 
+enum NftStatus {
+  NOT_MINTED
+  MINTING
+  MINTED
+  PENDING_TRANSFER
+}
+
+enum ReputationTier {
+  VOID
+  DRIFTER
+  SPECTRE
+  ORACLE
+  GUARDIAN
+  ARCHITECT
 }
 
 model Account {
@@ -211,6 +258,11 @@ model Post {
   author          User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   channel         Channel?  @relation(fields: [channelId], references: [id])
   
+  // Advanced Multi-Authorship (New)
+  coAuthors       PostAuthor[]
+  authoredByTeamId String?
+  authoredByTeam   ShadowTeam? @relation(fields: [authoredByTeamId], references: [id])
+ 
   parentId        String?
   parent          Post?     @relation("Thread", fields: [parentId], references: [id])
   replies         Post[]    @relation("Thread")
@@ -221,6 +273,7 @@ model Post {
   history         PostHistory[]
   savedBy         SavedPost[]
   reports         Report[]
+  notifications   Notification[]
   
   // Media Attachments (New for Phase 2)
   media           Media[]
@@ -249,11 +302,16 @@ model Comment {
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime?
   
+  // Engagement
+  reactionCount Int       @default(0)
+  
   // Relations
   post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   parent      Comment? @relation("CommentReplies", fields: [parentId], references: [id])
   replies     Comment[] @relation("CommentReplies")
+  reactions   Reaction[]
+  notifications Notification[]
   
   @@index([postId])
   @@index([authorId])
@@ -298,7 +356,7 @@ model ChannelSubscription {
 
 model Message {
   id          String      @id @default(cuid())
-  receiverId  String
+  receiverId  String?
   content     String
   
   // Message Type
@@ -336,7 +394,7 @@ model Message {
   transcription String?
 
   // Relations
-  receiver    User        @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  receiver    User?       @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
   sender      User?       @relation("MessageSender", fields: [senderId], references: [id])
   reports     Report[]
   
@@ -345,6 +403,97 @@ model Message {
   @@index([createdAt])
   @@index([parentId])
   @@index([senderFingerprint])
+  
+  // Advanced Persistant Chats (New)
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id])
+}
+ 
+// ==================== ADVANCED CHATS ====================
+ 
+model Conversation {
+  id        String   @id @default(cuid())
+  type      ChatType @default(DIRECT)
+  name      String?  // Name for group chats
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  participants ConversationParticipant[]
+  messages     Message[]
+  
+  @@index([updatedAt])
+}
+ 
+model ConversationParticipant {
+  id             String   @id @default(cuid())
+  conversationId String
+  userId         String
+  useShadow      Boolean  @default(false)
+  joinedAt       DateTime @default(now())
+  lastReadAt     DateTime @default(now())
+  
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([conversationId, userId])
+}
+ 
+enum ChatType {
+  DIRECT
+  GROUP
+  CHANNELS
+}
+ 
+// ==================== SHADOW COLLABORATION ====================
+ 
+model ShadowTeam {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  bio         String?
+  image       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  reputationScore Int       @default(0)
+  
+  members     TeamMember[]
+  posts       Post[]
+  
+  @@index([slug])
+}
+ 
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  role      TeamRole @default(MEMBER)
+  joinedAt  DateTime @default(now())
+  
+  team      ShadowTeam @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([teamId, userId])
+}
+ 
+model PostAuthor {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  role      String?  // e.g., "Research", "Analysis"
+  
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([postId, userId])
+}
+ 
+enum TeamRole {
+  OWNER
+  ADMIN
+  MEMBER
+  GUEST
 }
 
 model MessageBlock {
@@ -379,17 +528,21 @@ enum ToneType {
 
 model Reaction {
   id          String       @id @default(cuid())
-  postId      String
+  postId      String?
+  commentId   String?
   userId      String
   type        ReactionType
   
   createdAt   DateTime     @default(now())
   
-  post        Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post        Post?        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment     Comment?     @relation(fields: [commentId], references: [id], onDelete: Cascade)
   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@unique([postId, userId]) // One reaction per user per post
+  @@unique([commentId, userId]) // One reaction per user per comment
   @@index([postId])
+  @@index([commentId])
   @@index([userId])
 }
 
@@ -537,4 +690,33 @@ model PostHistory {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   
   @@index([postId])
+}
+
+// ==================== NOTIFICATIONS ====================
+
+model Notification {
+  id          String           @id @default(cuid())
+  recipientId String
+  senderId    String?
+  type        NotificationType
+  read        Boolean          @default(false)
+  postId      String?
+  commentId   String?
+  createdAt   DateTime         @default(now())
+
+  recipient   User             @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  sender      User?            @relation("NotificationSender", fields: [senderId], references: [id], onDelete: SetNull)
+  post        Post?            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment     Comment?         @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId])
+  @@index([createdAt])
+}
+
+enum NotificationType {
+  FOLLOW
+  REACTION
+  COMMENT
+  POST_MENTION
+  SYSTEM
 }

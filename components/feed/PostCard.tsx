@@ -15,7 +15,8 @@ import {
   Edit3,
   Trash2,
   Archive,
-  AlertCircle
+  AlertCircle,
+  CheckCircle
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import ReactMarkdown from "react-markdown"
@@ -29,6 +30,9 @@ import { updatePost, deletePost, archivePost } from "@/lib/actions/post"
 import { toggleReaction } from "@/lib/actions/reaction"
 import { createComment } from "@/lib/actions/comment"
 import { useTransition } from "react"
+import { ReactionPicker } from "./ReactionPicker"
+import { useReactions } from "@/hooks/useReactions"
+import type { ReactionType } from "@prisma/client"
 
 export function PostCard({ 
   post, 
@@ -51,8 +55,18 @@ export function PostCard({
   const [isPending, startTransition] = useTransition()
   
   // Optimistic Engagement State
-  const [reactionCount, setReactionCount] = useState(post.reactionCount)
-  const [isReacted, setIsReacted] = useState(false)
+  const [optimisticReactionOffset, setOptimisticReactionOffset] = useState(0)
+  const [isReacted, setIsReacted] = useState(post.reactions?.length > 0)
+  const [activeReaction, setActiveReaction] = useState<ReactionType | null>(
+    (post.reactions?.[0] as { type: ReactionType } | undefined)?.type || null
+  )
+  const [isPickerOpen, setIsPickerOpen] = useState(false)
+  
+  const { reactionCount: liveCount } = useReactions(post.id)
+  const displayReactionCount = (liveCount ?? post.reactionCount) + optimisticReactionOffset
+  
+  const [showBurst, setShowBurst] = useState(false)
+
   const [showComments, setShowComments] = useState(isDetail) // Default open in detail view
   const [commentCount, setCommentCount] = useState(post.commentCount)
   const [commentText, setCommentText] = useState("")
@@ -140,7 +154,8 @@ export function PostCard({
                ) : (
                  <div className="w-full h-full bg-truth-midGray" />
                )}
-               <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%)] bg-size-[100%_2px]" />
+               {/* Glitch Overlay */}
+               <div className="absolute inset-0 opacity-0 group-hover:opacity-10 pointer-events-none bg-linear-to-t from-truth-accentRed to-transparent animate-glitch" />
              </div>
           </div>
           <div>
@@ -172,9 +187,27 @@ export function PostCard({
                 </span>
               )}
             </div>
-            <p className="font-mono text-[9px] text-truth-textGray uppercase tracking-widest mt-1">
-              {isShadow ? `MASK_ID: ${post.author.shadowName || 'ANONYMOUS'}` : "AUTH_VERIFIED"} {" // "} {formatRelativeTime(post.createdAt)}
-            </p>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[9px] text-truth-textGray uppercase tracking-widest mt-1">
+              <span className="flex items-center gap-1.5">
+                {isShadow ? `MASK_ID: ${post.author.shadowName || 'ANONYMOUS'}` : "AUTH_VERIFIED"}
+                {isShadow && post.author.shadowVerified && (
+                  <CheckCircle className="w-2.5 h-2.5 text-truth-accentPurple fill-truth-accentPurple/10" />
+                )}
+              </span>
+              
+              <span className={`flex items-center gap-1 px-1.5 py-0.5 border border-opacity-30 ${
+                post.author.reputationTier === 'ARCHITECT' ? 'text-truth-accentYellow border-truth-accentYellow bg-truth-accentYellow/10' :
+                post.author.reputationTier === 'GUARDIAN' ? 'text-truth-accentGreen border-truth-accentGreen bg-truth-accentGreen/10' :
+                post.author.reputationTier === 'ORACLE' ? 'text-truth-accentBlue border-truth-accentBlue bg-truth-accentBlue/10' :
+                post.author.reputationTier === 'SPECTRE' ? 'text-truth-accentPurple border-truth-accentPurple bg-truth-accentPurple/10' :
+                'text-truth-textGray border-truth-midGray bg-truth-darkGray/30'
+              }`}>
+                <Zap className="w-2 h-2" />
+                {post.author.reputationTier}
+              </span>
+
+              <span>{" // "} {formatRelativeTime(post.createdAt)}</span>
+            </div>
           </div>
         </div>
         
@@ -339,29 +372,130 @@ export function PostCard({
       {/* Footer Actions */}
       <div className="flex items-center justify-between pt-6 border-t border-truth-midGray relative z-10">
         <div className="flex items-center gap-6">
-          <button 
-            disabled={isPending}
-            onClick={async (e) => {
-              e.stopPropagation()
-              const newCount = isReacted ? reactionCount - 1 : reactionCount + 1
-              setReactionCount(newCount)
-              setIsReacted(!isReacted)
-              
-              startTransition(async () => {
-                const res = await toggleReaction(post.id)
-                if (res.error) {
-                  setReactionCount(reactionCount)
-                  setIsReacted(isReacted)
+          <div className="relative">
+            <button 
+              disabled={isPending}
+              onMouseEnter={() => setIsPickerOpen(true)}
+              onClick={(e) => {
+                e.stopPropagation()
+                // Default toggle (REAL_TALK as primary for fast interaction)
+                const type: ReactionType = "REAL_TALK"
+                const wasReacted = isReacted
+                const wasType = activeReaction
+                
+                // Optimistic Update
+                if (wasReacted && wasType === type) {
+                  setOptimisticReactionOffset(prev => prev - 1)
+                  setIsReacted(false)
+                  setActiveReaction(null)
+                } else if (!wasReacted) {
+                  setOptimisticReactionOffset(prev => prev + 1)
+                  setIsReacted(true)
+                  setActiveReaction(type)
+                  setShowBurst(true)
+                  setTimeout(() => setShowBurst(false), 1000)
+                } else {
+                  // Just changing type
+                  setActiveReaction(type)
+                  setShowBurst(true)
+                  setTimeout(() => setShowBurst(false), 1000)
                 }
-              })
-            }}
-            className={`flex items-center gap-2 transition-all group/btn ${isReacted ? "text-truth-accentRed" : "text-truth-textGray"} ${isStory ? "hover:text-truth-accentPurple" : "hover:text-truth-accentRed"}`}
-          >
-            <div className={`p-2 border border-transparent transition-all ${isReacted ? "border-truth-accentRed/30 bg-truth-accentRed/5" : ""} ${isStory ? "group-hover/btn:border-truth-accentPurple" : "group-hover/btn:border-truth-accentRed"}`}>
-              <Heart className={`w-4 h-4 ${isReacted ? "fill-truth-accentRed text-truth-accentRed" : ""}`} />
-            </div>
-            <span className="font-mono text-[10px] uppercase font-bold">{reactionCount}</span>
-          </button>
+
+                startTransition(async () => {
+                  const res = await toggleReaction(post.id, type)
+                  if (res.error) {
+                    setOptimisticReactionOffset(0)
+                    setIsReacted(wasReacted)
+                    setActiveReaction(wasType)
+                  } else {
+                    setOptimisticReactionOffset(0) // Reset after sync
+                  }
+                })
+              }}
+              className={`flex items-center gap-2 transition-all group/btn ${isReacted ? "text-truth-accentRed" : "text-truth-textGray"} ${isStory ? "hover:text-truth-accentPurple" : "hover:text-truth-accentRed"}`}
+            >
+              <div className={`relative p-2 border border-transparent transition-all ${isReacted ? "border-truth-accentRed/30 bg-truth-accentRed/5" : ""} ${isStory ? "group-hover/btn:border-truth-accentPurple" : "group-hover/btn:border-truth-accentRed"}`}>
+                {/* Micro-burst Animation */}
+                <AnimatePresence>
+                  {showBurst && (
+                    <motion.div
+                      initial={{ scale: 0, opacity: 1 }}
+                      animate={{ scale: 2.5, opacity: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="absolute inset-0 bg-truth-accentRed/20 rounded-full z-0"
+                    />
+                  )}
+                </AnimatePresence>
+
+                {isReacted && activeReaction ? (
+                  <span className="text-sm drop-shadow-md">
+                    {activeReaction === "RELATE" && "🫂"}
+                    {activeReaction === "DEEP" && "🌊"}
+                    {activeReaction === "NOT_ALONE" && "💙"}
+                    {activeReaction === "WILD" && "🤯"}
+                    {activeReaction === "REAL_TALK" && "🔥"}
+                    {activeReaction === "THANK_YOU" && "🙏"}
+                    {activeReaction === "THAT_HURTS" && "😢"}
+                    {activeReaction === "STAY_STRONG" && "💪"}
+                  </span>
+                ) : (
+                  <Heart className={`w-4 h-4 ${isReacted ? "fill-truth-accentRed text-truth-accentRed" : ""}`} />
+                )}
+              </div>
+              {(isAuthor || isReacted) && (
+                <motion.span 
+                  key={displayReactionCount}
+                  initial={{ y: 5, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  className="font-bitter text-[10px] uppercase font-black tracking-tighter"
+                >
+                  {displayReactionCount}
+                </motion.span>
+              )}
+            </button>
+
+            <AnimatePresence>
+              {isPickerOpen && (
+                <ReactionPicker 
+                  activeType={activeReaction}
+                  onClose={() => setIsPickerOpen(false)}
+                  onSelect={(type) => {
+                    const wasReacted = isReacted
+                    const wasType = activeReaction
+                    
+                    // Optimistic
+                    if (wasReacted && wasType === type) {
+                      setOptimisticReactionOffset(prev => prev - 1)
+                      setIsReacted(false)
+                      setActiveReaction(null)
+                    } else if (!wasReacted) {
+                      setOptimisticReactionOffset(prev => prev + 1)
+                      setIsReacted(true)
+                      setActiveReaction(type)
+                      setShowBurst(true)
+                      setTimeout(() => setShowBurst(false), 600)
+                    } else {
+                      setActiveReaction(type)
+                      setShowBurst(true)
+                      setTimeout(() => setShowBurst(false), 600)
+                    }
+                    
+                    setIsPickerOpen(false)
+                    startTransition(async () => {
+                      const res = await toggleReaction(post.id, type)
+                      if (res.error) {
+                         setOptimisticReactionOffset(0)
+                         setIsReacted(wasReacted)
+                         setActiveReaction(wasType)
+                      } else {
+                        setOptimisticReactionOffset(0) // Reset after sync
+                      }
+                    })
+                  }}
+                />
+              )}
+            </AnimatePresence>
+          </div>
           
           <button 
             onClick={(e) => {

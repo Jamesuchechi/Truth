@@ -12,35 +12,55 @@ import {
   Shield, 
   Zap, 
   User,
+  ChevronRight,
   ChevronLeft,
-  ChevronRight
+  Ghost,
+  Bell,
+  Users
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-import { logoutUser } from "@/lib/actions/user"
+import { logoutUser, updateSettings } from "@/lib/actions/user"
 import { getSubscribedChannels } from "@/lib/actions/channel"
+import { getFollowers, getFollowing } from "@/lib/actions/follow"
 import { useTransition, useState, useEffect } from "react"
 import { useSidebar } from "./SidebarProvider"
+import NotificationBadge from "../notifications/NotificationBadge"
 
 const navItems = [
   { href: "/feed", icon: Home, label: "Feed", description: "The Pulse" },
+  { href: "/notifications", icon: Bell, label: "Signals", description: "Feedback Loop" },
   { href: "/inbox", icon: MessageSquare, label: "Inbox", description: "Internal Comms" },
   { href: "/channels", icon: Hash, label: "Channels", description: "Frequency Filters" },
   { href: "/settings", icon: Settings, label: "Settings", description: "Protocol Config" },
 ]
 
-export default function Sidebar({ user }: { user: { id: string; username?: string | null; image?: string | null; shadowName?: string | null } }) {
+export default function Sidebar({ user }: { user: { 
+  id: string; 
+  username?: string | null; 
+  image?: string | null; 
+  shadowName?: string | null;
+  defaultShadowMode?: boolean;
+  reputationScore?: number;
+  reputationTier?: string;
+} }) {
   const pathname = usePathname()
   const [isPending, startTransition] = useTransition()
   const { isCollapsed, toggleSidebar } = useSidebar()
   const [subscribedChannels, setSubscribedChannels] = useState<{id: string, name: string, slug: string, color: string | null}[]>([])
+  const [counts, setCounts] = useState({ followers: 0, following: 0 })
 
   useEffect(() => {
-    const fetchChannels = async () => {
-      const data = await getSubscribedChannels()
-      setSubscribedChannels(data)
+    const fetchData = async () => {
+      const [channels, followers, following] = await Promise.all([
+        getSubscribedChannels(),
+        getFollowers(user.id),
+        getFollowing(user.id)
+      ])
+      setSubscribedChannels(channels)
+      setCounts({ followers: followers.length, following: following.length })
     }
-    fetchChannels()
-  }, [])
+    fetchData()
+  }, [user.id])
 
   const handleLogout = () => {
     startTransition(async () => {
@@ -110,6 +130,7 @@ export default function Sidebar({ user }: { user: { id: string; username?: strin
                   : "bg-transparent border-transparent text-truth-textGray hover:border-truth-midGray hover:text-truth-textLight"}
               `}>
                 <item.icon className={`w-5 h-5 shrink-0 ${isActive ? "text-truth-accentRed" : "group-hover:text-truth-accentRed"}`} />
+                {item.href === "/notifications" && <NotificationBadge />}
                 {!isCollapsed && (
                   <motion.div 
                     initial={{ opacity: 0, x: -10 }}
@@ -170,7 +191,34 @@ export default function Sidebar({ user }: { user: { id: string; username?: strin
                   </div>
                </div>
 
-               <div className="h-px bg-truth-midGray w-full" />
+                <div className="h-px bg-truth-midGray w-full" />
+
+                {/* Network Connections Section */}
+                <div>
+                   <div className="flex items-center justify-between mb-4">
+                     <p className="font-mono text-[9px] text-truth-textGray uppercase tracking-widest flex items-center gap-2">
+                       <Users className="w-3 h-3 text-truth-accentBlue" /> Signal Network
+                     </p>
+                   </div>
+                   <div className="grid grid-cols-2 gap-2">
+                      <Link 
+                        href={`/${user.username}/followers`}
+                        className="p-3 bg-truth-darkGray/30 border border-truth-midGray/10 hover:border-truth-accentBlue/30 transition-all text-center group"
+                      >
+                         <p className="font-bitter font-black text-xs text-truth-textLight group-hover:text-truth-accentBlue">{counts.followers}</p>
+                         <p className="font-mono text-[7px] text-truth-textGray uppercase">Observers</p>
+                      </Link>
+                      <Link 
+                        href={`/${user.username}/following`}
+                        className="p-3 bg-truth-darkGray/30 border border-truth-midGray/10 hover:border-truth-accentBlue/30 transition-all text-center group"
+                      >
+                         <p className="font-bitter font-black text-xs text-truth-textLight group-hover:text-truth-accentBlue">{counts.following}</p>
+                         <p className="font-mono text-[7px] text-truth-textGray uppercase">Signals</p>
+                      </Link>
+                   </div>
+                </div>
+
+                <div className="h-px bg-truth-midGray w-full" />
 
                {/* Stats Section */}
                <div>
@@ -182,11 +230,27 @@ export default function Sidebar({ user }: { user: { id: string; username?: strin
                       <span className="text-truth-textGray">Encryption Level</span>
                       <span className="text-truth-accentGreen">AES-256</span>
                     </div>
-                    <div className="flex items-center justify-between text-[8px] font-mono uppercase">
-                      <span className="text-truth-textGray">Protocol Lag</span>
-                      <span className="text-truth-accentRed">12ms</span>
-                    </div>
-                  </div>
+                     <div className="flex items-center justify-between text-[8px] font-mono uppercase">
+                       <span className="text-truth-textGray">Protocol Lag</span>
+                       <span className="text-truth-accentRed">12ms</span>
+                     </div>
+                     <div className="pt-2">
+                       <div className="flex items-center justify-between text-[8px] font-mono uppercase mb-1">
+                         <span className="text-truth-textGray font-bold">Signal Reputation</span>
+                         <span className={user?.reputationScore && user.reputationScore > 50 ? "text-truth-accentGreen" : "text-truth-accentYellow"}>
+                           {user?.reputationScore || 0}%
+                         </span>
+                       </div>
+                       <div className="w-full h-1 bg-truth-darkGray overflow-hidden">
+                         <motion.div 
+                           initial={{ width: 0 }}
+                           animate={{ width: `${user?.reputationScore || 0}%` }}
+                           className={`h-full ${user?.reputationScore && user.reputationScore > 50 ? "bg-truth-accentGreen" : "bg-truth-accentYellow"}`}
+                         />
+                       </div>
+                       <p className="font-mono text-[7px] text-truth-textGray uppercase mt-1">Tier: {user?.reputationTier || "NEOPHYTE"}</p>
+                     </div>
+                   </div>
                </div>
             </motion.div>
           )}
@@ -245,16 +309,31 @@ export default function Sidebar({ user }: { user: { id: string; username?: strin
             </Link>
             
             {!isCollapsed && (
-              <motion.button 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                onClick={handleLogout}
-                disabled={isPending}
-                className="w-full py-2 bg-truth-midGray/50 border border-truth-midGray text-truth-textGray font-mono text-[9px] uppercase tracking-widest hover:bg-truth-accentRed hover:text-truth-bg hover:border-truth-accentRed transition-all flex items-center justify-center gap-2"
-              >
-                <LogOut className="w-3 h-3" />
-                Terminate Session
-              </motion.button>
+              <div className="space-y-2">
+                <button 
+                  onClick={() => {
+                    startTransition(async () => {
+                      await updateSettings({ defaultShadowMode: !user?.defaultShadowMode })
+                    })
+                  }}
+                  disabled={isPending}
+                  className={`w-full py-2 border font-mono text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${user?.defaultShadowMode ? "bg-truth-accentRed/20 border-truth-accentRed text-truth-accentRed" : "bg-truth-darkGray border-truth-midGray text-truth-textGray hover:border-truth-textLight hover:text-truth-textLight"}`}
+                >
+                  <Ghost className={`w-3.5 h-3.5 ${user?.defaultShadowMode ? "animate-pulse" : ""}`} />
+                  {user?.defaultShadowMode ? "SHADOW_ACTIVE" : "SHADOW_STANDBY"}
+                </button>
+
+                <motion.button 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  onClick={handleLogout}
+                  disabled={isPending}
+                  className="w-full py-2 bg-truth-midGray/50 border border-truth-midGray text-truth-textGray font-mono text-[9px] uppercase tracking-widest hover:bg-truth-accentRed hover:text-truth-bg hover:border-truth-accentRed transition-all flex items-center justify-center gap-2"
+                >
+                  <LogOut className="w-3 h-3" />
+                  Terminate Session
+                </motion.button>
+              </div>
             )}
           </div>
         </div>

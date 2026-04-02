@@ -11,6 +11,7 @@ import type { MessageActionState } from "@/lib/actions/message"
 import { motion, AnimatePresence } from "framer-motion"
 import { useSession } from "next-auth/react"
 import VoiceRecorder from "./VoiceRecorder"
+import { Turnstile } from "@marsidev/react-turnstile"
 
 interface MessagingFormProps {
   receiverId: string
@@ -47,9 +48,10 @@ export default function MessagingForm({ receiverId, receiverName }: MessagingFor
     sendMessage,
     { status: "idle", message: "" }
   )
-
+ 
   const handleVoiceComplete = (url: string, transcription: string) => {
     setVoiceData({ url, transcription })
+    setContent(transcription)
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -61,7 +63,7 @@ export default function MessagingForm({ receiverId, receiverName }: MessagingFor
     formData.append("type", mode === "VOICE" ? MessageType.VOICE : activeType)
     formData.append("tone", manualTone)
     formData.append("revealSender", revealSender.toString())
-
+    
     if (mode === "VOICE" && voiceData) {
         formData.append("content", voiceData.transcription)
         formData.append("audioUrl", voiceData.url)
@@ -265,6 +267,21 @@ export default function MessagingForm({ receiverId, receiverName }: MessagingFor
                             <div className="relative w-11 h-6 bg-truth-midGray peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:inset-s-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-truth-accentGreen shadow-inner"></div>
                         </label>
                     </div>
+                )}
+                
+                {/* Security Verification for Guests */}
+                {!session?.user && (
+                  <div className="pt-6 border-t border-truth-midGray flex flex-col items-center gap-3">
+                    <label className="font-mono text-[9px] uppercase font-black text-truth-textGray tracking-widest text-center">Security_Verification: Required_for_Guest_Nodes</label>
+                    <div className="bg-truth-darkGray/50 p-2 border-2 border-truth-midGray shadow-[10px_10px_0px_rgba(0,0,0,0.4)]">
+                        <Turnstile 
+                            siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"} 
+                            options={{
+                                theme: 'dark',
+                            }}
+                        />
+                    </div>
+                  </div>
                 )}
             </div>
 

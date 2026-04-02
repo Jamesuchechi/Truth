@@ -3,6 +3,7 @@
 
 import { prisma } from "@/lib/db/prisma"
 import { auth, signIn, signOut } from "@/auth"
+import { revalidatePath } from "next/cache"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
 import { AuthError } from "next-auth"
@@ -50,6 +51,11 @@ const SettingsSchema = z.object({
   allowedTones: z.array(z.nativeEnum(ToneType)).optional(),
   blockedPhrases: z.array(z.string()).optional(),
   messageCooldown: z.number().min(0).max(1440).optional(),
+  shadowName: z.string().min(3).max(25).optional(),
+  shadowBio: z.string().max(500).optional(),
+  followerCountPublic: z.boolean().optional(),
+  defaultShadowMode: z.boolean().optional(),
+  showShadowOnProfile: z.boolean().optional(),
 })
 
 export async function loginUser(prevState: ActionState, formData: FormData): Promise<ActionState> {
@@ -359,7 +365,22 @@ export async function updateSettings(values: z.infer<typeof SettingsSchema>): Pr
   if (typeof values.questionsOnlyMode !== 'undefined') updateData.questionsOnlyMode = values.questionsOnlyMode
   if (values.allowedTones !== undefined) updateData.allowedTones = values.allowedTones
   if (values.blockedPhrases !== undefined) updateData.blockedPhrases = values.blockedPhrases
-  if (typeof values.messageCooldown !== 'undefined') updateData.messageCooldown = values.messageCooldown
+  if (values.messageCooldown !== undefined) updateData.messageCooldown = values.messageCooldown
+  
+  if (values.shadowName && values.shadowName !== dbUser.shadowName) {
+    const existingName = await prisma.user.findUnique({ where: { shadowName: values.shadowName } })
+    if (existingName) return { error: "Shadow name already indexed." }
+    
+    updateData.shadowName = values.shadowName
+    if (!dbUser.shadowCreatedAt) {
+      updateData.shadowCreatedAt = new Date()
+    }
+  }
+
+  if (values.shadowBio !== undefined) updateData.shadowBio = values.shadowBio
+  if (typeof values.followerCountPublic !== "undefined") updateData.followerCountPublic = values.followerCountPublic
+  if (typeof values.defaultShadowMode !== "undefined") updateData.defaultShadowMode = values.defaultShadowMode
+  if (typeof values.showShadowOnProfile !== "undefined") updateData.showShadowOnProfile = values.showShadowOnProfile
 
   await prisma.user.update({
     where: { id: session.user.id },
@@ -435,12 +456,22 @@ export async function getUserByUsername(username: string) {
       select: {
         id: true,
         username: true,
-        email: false, // Security: don't leak email
+        email: false,
         image: true,
         bio: true,
         isAnonymous: true,
         shadowName: true,
+        shadowBio: true,
+        shadowCreatedAt: true,
+        shadowVerified: true,
+        reputationScore: true,
+        reputationTier: true,
+        endorsements: true,
         createdAt: true,
+        nftTokenId: true,
+        nftMintedAt: true,
+        nftContractAddress: true,
+        nftStatus: true,
         _count: {
           select: {
             posts: true,
@@ -480,4 +511,59 @@ export async function verifySecurityAnswer(email: string, answer: string) {
   // Create a password reset token
   const token = await generatePasswordResetToken(email)
   return { success: true, token: token.token }
+}
+
+export async function checkShadowNameAvailability(name: string) {
+  if (name.length < 3) return { error: "Identifier too short." }
+  
+  const existing = await prisma.user.findUnique({
+    where: { shadowName: name },
+    select: { id: true }
+  })
+  
+  return { available: !existing }
+}
+export async function deleteShadowIdentity(): Promise<ActionState> {
+  const session = await auth()
+  if (!session?.user?.id) return { error: "Unauthorized" }
+
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: {
+      shadowName: null,
+      shadowBio: null,
+      shadowCreatedAt: null,
+      shadowVerified: false,
+    },
+  })
+
+  revalidatePath("/settings")
+  return { success: "Shadow identity erased." }
+}
+
+export async function getShadowHistory(shadowName: string) {
+  return await prisma.post.findMany({
+    where: {
+      author: { shadowName },
+      useShadowId: true,
+      deletedAt: null,
+    },
+    orderBy: { createdAt: "desc" },
+    include: {
+      author: {
+        select: {
+          username: true,
+          shadowName: true,
+          image: true,
+        }
+      },
+      reactions: true,
+      _count: {
+        select: {
+          comments: true,
+          reactions: true,
+        }
+      }
+    }
+  })
 }

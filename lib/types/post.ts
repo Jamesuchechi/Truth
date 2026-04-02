@@ -7,6 +7,11 @@ export const postInclude = {
       username: true,
       image: true,
       shadowName: true,
+      shadowVerified: true,
+      isAnonymous: true,
+      reputationScore: true,
+      reputationTier: true,
+      endorsements: true,
     }
   },
   channel: {
@@ -32,6 +37,7 @@ export const postInclude = {
   feedTracking: true,
   reactions: {
     select: {
+      type: true,
       createdAt: true,
     }
   }

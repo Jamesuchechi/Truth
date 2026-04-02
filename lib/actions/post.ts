@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import type { VisibilityType, MediaType } from "@prisma/client"
 import { postInclude } from "@/lib/types/post"
+import { syncUserReputation } from "./reputation"
 
 const MediaItemSchema = z.object({
   url: z.string().url("Invalid protocol signal URL."),
@@ -21,6 +22,7 @@ const PostSchema = z.object({
   parentId: z.string().optional(),
   channelId: z.string().optional(),
   media: z.array(MediaItemSchema).optional(),
+  authoredByTeamId: z.string().optional(),
 })
 
 // Basic profanity filter (pre-AI check)
@@ -54,13 +56,14 @@ export async function createPost(formData: FormData) {
     parentId: formData.get("parentId") || undefined,
     channelId: formData.get("channelId") || undefined,
     media: mediaParsed,
+    authoredByTeamId: formData.get("authoredByTeamId") || undefined,
   })
 
   if (!validatedFields.success) {
     return { error: validatedFields.error.flatten().fieldErrors }
   }
 
-  const { content, useShadow, visibility, parentId, channelId, media, viewsLimit } = validatedFields.data
+  const { content, useShadow, visibility, parentId, channelId, media, viewsLimit, authoredByTeamId } = validatedFields.data
 
   if (hasProfanity(content)) {
     return { error: "Content violated protocol: PROFANITY_DETECTED" }
@@ -81,6 +84,7 @@ export async function createPost(formData: FormData) {
         expiresAt,
         parentId,
         channelId,
+        authoredByTeamId,
         viewsLimit: visibility === "LIMITED" ? viewsLimit : null,
         media: media && media.length > 0 ? {
           create: media.map((item, index) => ({
@@ -95,6 +99,8 @@ export async function createPost(formData: FormData) {
     revalidatePath("/feed")
     revalidatePath(`/${session.user.username}`)
     if (channelId) revalidatePath(`/channels/${channelId}`)
+    
+    await syncUserReputation(session.user.id)
     
     return { success: "Truth synchronized successfully.", id: post.id }
   } catch (error) {
@@ -138,6 +144,7 @@ export async function createThread(
        lastId = newPost.id
     }
     revalidatePath("/feed")
+    await syncUserReputation(session.user.id)
     return { success: "Thread synchronized." }
   } catch {
     return { error: "Thread execution failure." }

@@ -26,6 +26,9 @@ declare module "next-auth" {
     allowedTones?: string[] // ToneType[] as strings
     blockedPhrases?: string[]
     messageCooldown?: number
+    shadowName?: string | null
+    defaultShadowMode?: boolean
+    showShadowOnProfile?: boolean
   }
   interface Session {
     user: {
@@ -44,6 +47,9 @@ declare module "next-auth" {
       allowedTones?: string[]
       blockedPhrases?: string[]
       messageCooldown?: number
+      shadowName?: string | null
+      defaultShadowMode?: boolean
+      showShadowOnProfile?: boolean
     } & DefaultSession["user"]
   }
 }
@@ -65,6 +71,9 @@ declare module "next-auth/jwt" {
     allowedTones?: string[]
     blockedPhrases?: string[]
     messageCooldown?: number
+    shadowName?: string | null
+    defaultShadowMode?: boolean
+    showShadowOnProfile?: boolean
   }
 }
 
@@ -135,6 +144,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.allowedTones = user.allowedTones
         token.blockedPhrases = user.blockedPhrases
         token.messageCooldown = user.messageCooldown
+        token.shadowName = user.shadowName
+        token.defaultShadowMode = user.defaultShadowMode
+        token.showShadowOnProfile = user.showShadowOnProfile
       }
       if (trigger === "update" && session) {
         token.username = session.username
@@ -146,6 +158,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.allowedTones = session.allowedTones
         token.blockedPhrases = session.blockedPhrases
         token.messageCooldown = session.messageCooldown
+        token.shadowName = session.shadowName
+        token.defaultShadowMode = session.defaultShadowMode
+        token.showShadowOnProfile = session.showShadowOnProfile
       }
       return token
     },
@@ -166,6 +181,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.allowedTones = token.allowedTones as string[]
         session.user.blockedPhrases = token.blockedPhrases as string[]
         session.user.messageCooldown = token.messageCooldown as number
+        session.user.shadowName = token.shadowName as string
+        session.user.defaultShadowMode = token.defaultShadowMode as boolean
+        session.user.showShadowOnProfile = token.showShadowOnProfile as boolean
       }
       return session
     },

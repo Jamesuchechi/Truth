@@ -7,6 +7,22 @@ export const commentInclude = {
       username: true,
       image: true,
       shadowName: true,
+      isAnonymous: true,
+      shadowVerified: true,
+      reputationScore: true,
+      reputationTier: true,
+      endorsements: true,
+    }
+  },
+  reactions: {
+    select: {
+      type: true,
+      userId: true,
+    }
+  },
+  _count: {
+    select: {
+      reactions: true,
     }
   }
 } satisfies Prisma.CommentInclude

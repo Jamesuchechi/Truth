@@ -1,11 +1,13 @@
-// lib/feed/ranking.ts
 import { prisma } from '@/lib/db/prisma'
+import type { ReactionType } from '@prisma/client'
 
 interface FeedSignals {
   userId: string
   postId: string
   viewDuration?: number
   reacted: boolean
+  reactionType?: ReactionType | null
+  allReactions?: { type: ReactionType }[]
   commented: boolean
   saved: boolean
   channelAffinity: number
@@ -18,6 +20,8 @@ export async function calculateFeedScore(signals: FeedSignals): Promise<number> 
   const engagementScore = calculateEngagementScore({
     viewDuration: signals.viewDuration,
     reacted: signals.reacted,
+    reactionType: signals.reactionType,
+    allReactions: signals.allReactions || [],
     commented: signals.commented,
     saved: signals.saved
   })
@@ -44,6 +48,8 @@ export async function calculateFeedScore(signals: FeedSignals): Promise<number> 
 function calculateEngagementScore(engagement: {
   viewDuration?: number
   reacted: boolean
+  reactionType?: ReactionType | null
+  allReactions?: { type: ReactionType }[]
   commented: boolean
   saved: boolean
 }): number {
@@ -54,8 +60,18 @@ function calculateEngagementScore(engagement: {
     score += Math.min(engagement.viewDuration / 60000, 1) * 0.3
   }
 
-  // Reactions
-  if (engagement.reacted) score += 0.3
+  // Reactions with specific weights
+  if (engagement.reacted) {
+    const weight = getReactionWeight(engagement.reactionType || null)
+    score += weight
+  }
+
+  // Reaction Diversity Bonus
+  if (engagement.allReactions && engagement.allReactions.length > 0) {
+    const uniqueTypes = new Set(engagement.allReactions.map((r) => r.type)).size
+    if (uniqueTypes >= 3) score += 0.2 // Diverse emotional response boost
+    if (uniqueTypes >= 5) score += 0.1 // Maximum diversity bonus
+  }
 
   // Comments (highest signal)
   if (engagement.commented) score += 0.4
@@ -125,6 +141,8 @@ export async function getPersonalizedFeed(
         postId: post.id,
         viewDuration: undefined,
         reacted: post.reactions.length > 0,
+        reactionType: post.reactions[0]?.type || null,
+        allReactions: post.reactions,
         commented: false,
         saved: false,
         channelAffinity: channelScore,
@@ -218,4 +236,23 @@ async function getCreatorReputation(authorId: string): Promise<number> {
   const commentScore = Math.min(avgComments / 5, 1) * 0.4
 
   return reactionScore + commentScore
+}
+
+function getReactionWeight(type: ReactionType | null): number {
+  if (!type) return 0.3 // Default weight
+
+  switch (type) {
+    case 'DEEP':
+    case 'REAL_TALK':
+      return 0.5 // High emotional resonance
+    case 'WILD':
+    case 'THAT_HURTS':
+    case 'STAY_STRONG':
+      return 0.4 // Significant impact
+    case 'RELATE':
+    case 'NOT_ALONE':
+    case 'THANK_YOU':
+    default:
+      return 0.3 // Standard engagement
+  }
 }

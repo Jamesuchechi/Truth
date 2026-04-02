@@ -30,6 +30,29 @@ export async function sendMessage(prevState: MessageActionState, formData: FormD
   const session = await auth()
   const fingerprint = await getSenderFingerprint()
   
+  // 1. Captcha Verification for Guests
+  if (!session?.user?.id) {
+    const token = formData.get("cf-turnstile-response") as string
+    if (!token) return { status: "error", message: "Security protocol missing. Please verify you are a sentient node." }
+    
+    try {
+        const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: `secret=${encodeURIComponent(process.env.TURNSTILE_SECRET_KEY || "")}&response=${encodeURIComponent(token)}`
+        })
+        const result = await response.json()
+        if (!result.success) {
+            return { status: "error", message: "Inorganic intelligence detected. Signal transmission denied." }
+        }
+    } catch (e) {
+        console.error("Turnstile verification failed:", e)
+        if (process.env.NODE_ENV === "production") {
+            return { status: "error", message: "Security relay unavailable. Try again later." }
+        }
+    }
+  }
+  
   const validatedFields = MessageSchema.safeParse({
     receiverId: formData.get("receiverId"),
     content: formData.get("content"),

@@ -2,9 +2,38 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { BarChart2, Eye, MessageCircle, Heart, X, Zap, Clock } from "lucide-react"
+import { 
+  BarChart2, Eye, MessageCircle, Heart, X, Zap, Clock, 
+  PieChart as PieIcon, Activity 
+} from "lucide-react"
+import { 
+  PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend 
+} from "recharts"
 
 import type { PostWithRelations } from "@/lib/types/post"
+import { getReactionAnalytics } from "@/lib/actions/reaction"
+
+const REACTION_COLORS: Record<string, string> = {
+  RELATE: "#9b5de5",
+  DEEP: "#00BBF9",
+  NOT_ALONE: "#00F5D4",
+  WILD: "#FEE440",
+  REAL_TALK: "#FF3366",
+  THANK_YOU: "#00F5D4",
+  THAT_HURTS: "#FF3366",
+  STAY_STRONG: "#9b5de5",
+}
+
+const REACTION_LABELS: Record<string, string> = {
+  RELATE: "🫂_RELATE",
+  DEEP: "🌊_DEEP",
+  NOT_ALONE: "💙_NOT_ALONE",
+  WILD: "🤯_WILD",
+  REAL_TALK: "🔥_REAL_TALK",
+  THANK_YOU: "🙏_THANK_YOU",
+  THAT_HURTS: "😢_THAT_HURTS",
+  STAY_STRONG: "💪_STAY_STRONG",
+}
 
 interface PostAnalyticsProps {
   post: PostWithRelations & {
@@ -51,21 +80,39 @@ export default function PostAnalytics({ post, onClose }: PostAnalyticsProps) {
   ]
 
   const [now, setNow] = useState<number | null>(null)
+  const [reactionSummary, setReactionSummary] = useState<Record<string, number>>({})
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(true)
 
   useEffect(() => {
-    // Defeated cascading render warning by moving to task queue
     const timer = setTimeout(() => {
       setNow(Date.now())
     }, 0)
+    
+    const fetchReactions = async () => {
+      const res = await getReactionAnalytics(post.id)
+      if (res.summary) {
+        setReactionSummary(typeof res.summary === 'string' ? JSON.parse(res.summary) : res.summary)
+      }
+      setIsLoadingAnalytics(false)
+    }
+
+    fetchReactions()
     return () => clearTimeout(timer)
-  }, [])
+  }, [post.id])
+
+  const chartData = Object.entries(reactionSummary).map(([name, value]) => ({
+    name,
+    value,
+    label: REACTION_LABELS[name] || name,
+    color: REACTION_COLORS[name] || "#666"
+  })).sort((a, b) => b.value - a.value)
 
   // Calculate stats based on stable 'now' value
   const hoursSinceCreation = now 
     ? Math.max(0.5, (now - new Date(post.createdAt).getTime()) / (1000 * 60 * 60))
     : 0.5
   const velocity = (post.reactionCount + post.commentCount) / hoursSinceCreation
-  const isSpiking = velocity > 5 // Adjust threshold as needed
+  const isSpiking = velocity > 5 
 
 
   return (
@@ -108,6 +155,68 @@ export default function PostAnalytics({ post, onClose }: PostAnalyticsProps) {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Emotional Pulse Breakdown */}
+        <div className="p-6 bg-black/40 border-2 border-truth-midGray/20 mb-8 overflow-hidden relative group">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <PieIcon className="w-4 h-4 text-truth-accentRed" />
+              <h3 className="font-mono text-[10px] font-black uppercase text-truth-textLight tracking-[0.2em]">
+                EMOTIONAL_PULSE_ANALYTICS
+              </h3>
+            </div>
+            {isLoadingAnalytics && <Activity className="w-4 h-4 text-truth-accentBlue animate-pulse" />}
+          </div>
+
+          <div className="h-[200px] w-full flex items-center">
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={chartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={70}
+                    paddingAngle={5}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#121212', border: '1px solid #2a2a2a', borderRadius: 0 }}
+                    itemStyle={{ fontFamily: 'monospace', fontSize: '10px', textTransform: 'uppercase' }}
+                    cursor={{ fill: 'transparent' }}
+                  />
+                  <Legend 
+                    verticalAlign="middle" 
+                    align="right"
+                    layout="vertical"
+                    iconType="rect"
+                    formatter={(value: string) => (
+                      <span className="font-mono text-[8px] text-truth-textGray uppercase ml-2">
+                        {REACTION_LABELS[value] || value}
+                      </span>
+                    )}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center gap-2 opacity-30">
+                 <Activity className="w-8 h-8 text-truth-textGray" />
+                 <span className="font-mono text-[8px] uppercase tracking-widest text-truth-textGray">
+                   AWAITING_EMOTIONAL_SYNC
+                 </span>
+              </div>
+            )}
+          </div>
+          
+          {/* Subtle Protocol Pattern */}
+          <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-truth-accentRed/5 rounded-full blur-3xl group-hover:bg-truth-accentRed/10 transition-colors" />
         </div>
 
         {/* Advanced Metrics Grid */}

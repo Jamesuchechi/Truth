@@ -4,7 +4,8 @@ import { prisma } from "@/lib/db/prisma"
 import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import type { CommentWithAuthor } from "@/lib/types/comment"
+import { commentInclude, type CommentWithAuthor } from "@/lib/types/comment"
+import { syncUserReputation } from "./reputation"
 
 const CommentSchema = z.object({
   content: z.string().min(1, "Comment cannot be empty").max(1000, "Maximum length is 1000 characters"),
@@ -45,6 +46,12 @@ export async function createComment(formData: FormData) {
     })
 
     revalidatePath("/feed")
+    
+    // Sync reputation for the author (received comment) and commenter (created one)
+    const post = await prisma.post.findUnique({ where: { id: postId }, select: { authorId: true } })
+    if (post) await syncUserReputation(post.authorId)
+    await syncUserReputation(session.user.id)
+
     return { success: "Comment synchronized.", comment }
   } catch (error) {
     console.error("Comment creation error:", error)
@@ -54,20 +61,11 @@ export async function createComment(formData: FormData) {
 
 export async function getComments(postId: string): Promise<CommentWithAuthor[]> {
   try {
-    const comments = await prisma.comment.findMany({
+    const comments = (await prisma.comment.findMany({
       where: { postId, deletedAt: null },
       orderBy: { createdAt: "desc" },
-      include: {
-        author: {
-          select: {
-            id: true,
-            username: true,
-            image: true,
-            shadowName: true,
-          }
-        }
-      }
-    })
+      include: commentInclude
+    })) as CommentWithAuthor[]
     return comments
   } catch (error) {
     console.error("Error fetching comments:", error)

@@ -1,11 +1,23 @@
-// components/user/ProfileHeader.tsx
-import { Shield,Calendar, Users, Hash, Zap } from "lucide-react"
+"use client"
+
+import type { ReputationTier } from "@prisma/client"
+import { Shield, Calendar, Users, Hash, Zap, CheckCircle, Activity } from "lucide-react"
 import Image from "next/image"
+import { endorseUser } from "@/lib/actions/reputation"
+import { useSession } from "next-auth/react"
+import { useState, useTransition } from "react"
 
 interface ProfileHeaderProps {
   user: {
+    id: string
     username: string | null
     shadowName: string | null
+    shadowBio: string | null
+    shadowCreatedAt: Date | null
+    shadowVerified: boolean
+    reputationScore: number
+    reputationTier: ReputationTier
+    endorsements: number
     isAnonymous: boolean
     image: string | null
     bio: string | null
@@ -19,14 +31,43 @@ interface ProfileHeaderProps {
 }
 
 export default function ProfileHeader({ user }: ProfileHeaderProps) {
+  const { data: session } = useSession()
+  const [isPending, startTransition] = useTransition()
+  const [localEndorsements, setLocalEndorsements] = useState(user.endorsements)
+  
   const displayName = user.isAnonymous ? user.shadowName : user.username
   const secondaryName = user.isAnonymous ? `@${user.username}` : user.shadowName
+  const activeBio = user.isAnonymous ? user.shadowBio : user.bio
+  
+  const isOwner = session?.user?.id === user.id
+  
+  // Tier-based coloring
+  const getTierColor = (tier: ReputationTier) => {
+      switch(tier) {
+          case 'ARCHITECT': return 'text-truth-accentYellow border-truth-accentYellow bg-truth-accentYellow/10'
+          case 'GUARDIAN': return 'text-truth-accentGreen border-truth-accentGreen bg-truth-accentGreen/10'
+          case 'ORACLE': return 'text-truth-accentBlue border-truth-accentBlue bg-truth-accentBlue/10'
+          case 'SPECTRE': return 'text-truth-accentPurple border-truth-accentPurple bg-truth-accentPurple/10'
+          default: return 'text-truth-textGray border-truth-midGray bg-truth-darkGray/30'
+      }
+  }
+
+  const handleEndorse = async () => {
+    startTransition(async () => {
+      const res = await endorseUser(user.id)
+      if (res.success) {
+        setLocalEndorsements(prev => prev + 1)
+      }
+    })
+  }
+
+  const trustPercentage = Math.min(100, Math.floor((user.reputationScore / 5000) * 100))
 
   return (
     <div className="w-full bg-truth-nearBlack border-2 border-truth-midGray p-1 bg-[url('/grid.svg')] bg-fixed">
       {/* Banner Area (Stylized) */}
-      <div className="h-48 w-full bg-gradient-to-br from-truth-darkGray to-truth-bg relative overflow-hidden border-b-2 border-truth-midGray">
-        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-truth-accentRed via-transparent to-transparent animate-pulse" />
+      <div className="h-48 w-full bg-linear-to-br from-truth-darkGray to-truth-bg relative overflow-hidden border-b-2 border-truth-midGray">
+        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-truth-accentRed via-transparent to-transparent animate-pulse" />
         <div className="absolute top-4 right-4 flex gap-2">
             {user.isAnonymous && (
                 <div className="px-3 py-1 bg-truth-accentRed/20 border border-truth-accentRed text-truth-accentRed font-mono text-[10px] uppercase tracking-widest flex items-center gap-2">
@@ -34,9 +75,19 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
                     Anonymous Mode Active
                 </div>
             )}
+            {user.shadowVerified && user.isAnonymous && (
+                <div className="px-3 py-1 bg-truth-accentPurple/20 border border-truth-accentPurple text-truth-accentPurple font-mono text-[10px] uppercase tracking-widest flex items-center gap-2">
+                    <CheckCircle className="w-3 h-3" />
+                    Verified Shadow
+                </div>
+            )}
+            <div className={`px-3 py-1 border font-mono text-[10px] uppercase tracking-widest flex items-center gap-2 ${getTierColor(user.reputationTier)}`}>
+                <Zap className="w-3 h-3" />
+                Tier: {user.reputationTier}
+            </div>
             <div className="px-3 py-1 bg-truth-bg/80 border border-truth-midGray text-truth-textGray font-mono text-[10px] uppercase tracking-widest flex items-center gap-2">
                 <Hash className="w-3 h-3" />
-                ID: {user.shadowName?.split('_')[1] || 'VOID'}
+                ID: {user.shadowName?.split('_')[2] || 'VOID'}
             </div>
         </div>
       </div>
@@ -59,7 +110,7 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
               </div>
             )}
             {/* Glitch Overlay */}
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-10 pointer-events-none bg-gradient-to-t from-truth-accentRed to-transparent animate-glitch" />
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-10 pointer-events-none bg-linear-to-t from-truth-accentRed to-transparent animate-glitch" />
           </div>
         </div>
 
@@ -75,13 +126,21 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
             </p>
           </div>
 
-          {user.bio && (
+          {activeBio && (
             <p className="max-w-2xl font-mono text-sm text-truth-textGray leading-relaxed bg-truth-bg/50 p-4 border-l-2 border-truth-midGray">
-              {user.bio}
+              {activeBio}
             </p>
           )}
 
           <div className="flex flex-wrap gap-6 font-mono text-[10px] uppercase tracking-[0.2em] text-truth-textGray pt-2">
+            <div className="flex items-center gap-2 tooltip" title={`Digital Credibility Score: ${user.reputationScore}`}>
+              <Activity className="w-4 h-4 text-truth-accentGreen" />
+              Integrity: <span className="text-truth-accentGreen font-bold">{trustPercentage}%</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-truth-accentPurple" />
+              Endorsements: <span className="text-truth-textLight font-bold">{localEndorsements}</span>
+            </div>
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-truth-accentRed" />
               <span className="text-truth-textLight font-bold">{user._count.followers}</span> Followers
@@ -103,11 +162,18 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
 
         {/* Action Buttons */}
         <div className="flex gap-4 self-center md:self-end pt-4">
+            {!isOwner && (
+                <button 
+                  onClick={handleEndorse}
+                  disabled={isPending}
+                  className="px-6 py-3 bg-truth-accentPurple text-truth-bg font-mono font-bold text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[4px_4px_0px_rgba(0,0,0,0.3)] disabled:opacity-50"
+                  title="Validate this Shadow Identity"
+                >
+                  {isPending ? 'Syncing...' : 'Endorse'}
+                </button>
+            )}
             <button className="px-6 py-3 bg-truth-accentRed text-truth-bg font-mono font-bold text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[4px_4px_0px_rgba(0,0,0,0.3)]">
                 Connect
-            </button>
-            <button className="px-6 py-3 bg-truth-bg border-2 border-truth-midGray text-truth-textLight font-mono font-bold text-xs uppercase tracking-widest hover:border-truth-accentRed transition-all">
-                Message
             </button>
         </div>
       </div>

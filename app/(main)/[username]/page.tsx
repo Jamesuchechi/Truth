@@ -1,10 +1,13 @@
 import { getUserByUsername } from "@/lib/actions/user"
+import { getFollowStatus } from "@/lib/actions/follow"
 import ProfileHeader from "@/components/profile/ProfileHeader"
 import MessagingForm from "@/components/profile/MessagingForm"
 import { notFound } from "next/navigation"
 import { auth } from "@/auth"
 import Link from "next/link"
 import { Inbox } from "lucide-react"
+import NftManifesto from "@/components/profile/NftManifesto"
+import type { NftStatus } from "@prisma/client"
 
 interface Props {
   params: Promise<{
@@ -22,11 +25,17 @@ export default async function ProfilePage({ params }: Props) {
   }
 
   const isOwnProfile = session?.user?.id === user.id
+  const { isFollowing, isMutual } = await getFollowStatus(user.id)
 
   return (
     <main className="min-h-screen bg-truth-bg text-truth-textLight pt-20">
       <div className="max-w-6xl mx-auto py-12 px-6 space-y-12 animate-fadeIn">
-        <ProfileHeader user={user} />
+        <ProfileHeader 
+          user={user} 
+          isFollowing={isFollowing}
+          isMutual={isMutual}
+          isOwnProfile={isOwnProfile}
+        />
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2 space-y-8">
@@ -65,6 +74,19 @@ export default async function ProfilePage({ params }: Props) {
                 </Link>
               </section>
             )}
+
+            <NftManifesto 
+              user={{
+                id: user.id,
+                shadowName: user.shadowName,
+                nftStatus: user.nftStatus as NftStatus,
+                nftTokenId: user.nftTokenId,
+                nftContractAddress: user.nftContractAddress,
+                nftMintedAt: user.nftMintedAt,
+                reputationScore: user.reputationScore
+              }} 
+              isOwnProfile={isOwnProfile} 
+            />
 
             <section className="space-y-6">
               <h2 className="font-bitter text-2xl font-black text-truth-textLight uppercase tracking-tight flex items-center gap-3">
