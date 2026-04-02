@@ -6,7 +6,7 @@ import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { MessageType, ToneType } from "@prisma/client"
-import { detectTone } from "@/lib/ai/tone"
+import { analyzeContent } from "@/lib/ai/moderation"
 import { sendInboxNotificationEmail } from "@/lib/mail"
 
 import { getSenderFingerprint } from "@/lib/utils/fingerprint"
@@ -153,11 +153,14 @@ export async function sendMessage(prevState: MessageActionState, formData: FormD
       if (hasBlockedPhrase) return { status: "error", message: "Signal contains restricted terminology." }
     }
 
-    // 7. AI Tone Detection & Filtering
-    let tone: ToneType = manualTone || ToneType.NEUTRAL
-    if (!manualTone) {
-      tone = await detectTone(content)
+    // 7. AI Tone & Moderation Analysis
+    const analysis = await analyzeContent(content)
+    
+    if (analysis.isBlocked) {
+      return { status: "error", message: "Signal blocked: CONTENT_VIOLATION_DETECTED" }
     }
+
+    const tone: ToneType = manualTone || analysis.tone
 
     if (receiver.allowedTones.length > 0 && !receiver.allowedTones.includes(tone)) {
       return { status: "error", message: `Signal filtered: Recipient does not accept ${tone} transmissions.` }

@@ -5,10 +5,10 @@ import { prisma } from "@/lib/db/prisma"
 import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import type { VisibilityType, MediaType, ToneType } from "@prisma/client"
+import type { VisibilityType, MediaType } from "@prisma/client"
 import { postInclude } from "@/lib/types/post"
 import { syncUserReputation } from "./reputation"
-import { checkToxicity, detectTone } from "@/lib/ai/toxicity"
+import { analyzeContent } from "@/lib/ai/moderation"
 
 const MediaItemSchema = z.object({
   url: z.string().url("Invalid protocol signal URL."),
@@ -77,10 +77,14 @@ export async function createPost(formData: FormData) {
     }
 
     // AI Analysis (Synchronous for protocol integrity)
-    const [isToxic, tone] = await Promise.all([
-      checkToxicity(content),
-      detectTone(content)
-    ])
+    const analysis = await analyzeContent(content)
+
+    if (analysis.isBlocked) {
+      return { 
+        error: `SIGNAL_REJECTED: Moderation protocol violation.`,
+        details: analysis.flagReason 
+      }
+    }
 
     const post = await prisma.post.create({
       data: {
@@ -92,9 +96,9 @@ export async function createPost(formData: FormData) {
         parentId,
         channelId,
         authoredByTeamId,
-        toxicityScore: isToxic ? 1.0 : 0,
-        tone: tone as ToneType,
-        isFiltered: isToxic,
+        toxicityScore: analysis.toxicityScore,
+        tone: analysis.tone,
+        isFiltered: analysis.isFlagged,
         viewsLimit: visibility === "LIMITED" ? viewsLimit : null,
         media: media && media.length > 0 ? {
           create: media.map((item, index) => ({
@@ -134,10 +138,10 @@ export async function createThread(
     for (const item of contents) {
        if (hasProfanity(item.content)) return { error: "Content violated protocol: Profanity detected in thread." }
        
-       const [isToxic, tone] = await Promise.all([
-         checkToxicity(item.content),
-         detectTone(item.content)
-       ])
+       // AI Analysis (Synchronous for protocol integrity)
+       const analysis = await analyzeContent(item.content)
+
+       if (analysis.isBlocked) return { error: `BLOCK_VIOLATION: Thread signal rejected.` }
 
        const newPost: { id: string } = await prisma.post.create({
          data: {
@@ -146,9 +150,9 @@ export async function createThread(
            useShadowId: useShadow,
            parentId: lastId,
            channelId,
-           toxicityScore: isToxic ? 1.0 : 0,
-           tone: tone as ToneType,
-           isFiltered: isToxic,
+           toxicityScore: analysis.toxicityScore,
+           tone: analysis.tone,
+           isFiltered: analysis.isFlagged,
            media: item.media && item.media.length > 0 ? {
              create: item.media.map((m, idx) => ({
                url: m.url,
@@ -173,9 +177,9 @@ export async function updatePost(postId: string, content: string) {
   const session = await auth()
   if (!session?.user?.id) return { error: "Unauthorized" }
 
-  if (hasProfanity(content)) {
-    return { error: "Content violated protocol: PROFANITY_DETECTED" }
-  }
+  // AI Moderation Analysis
+  const analysis = await analyzeContent(content)
+  if (analysis.isBlocked) return { error: "Update rejected: CONTENT_VIOLATED_PROTOCOL" }
 
   try {
     const post = await prisma.post.findUnique({
@@ -201,7 +205,12 @@ export async function updatePost(postId: string, content: string) {
 
     await prisma.post.update({
       where: { id: postId },
-      data: { content }
+      data: { 
+        content,
+        toxicityScore: analysis.toxicityScore,
+        tone: analysis.tone,
+        isFiltered: analysis.isFlagged
+      }
     })
 
     revalidatePath("/feed")

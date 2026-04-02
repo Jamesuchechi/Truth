@@ -6,6 +6,7 @@ import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
 import type { ReactionType } from "@prisma/client"
 import { syncUserReputation } from "./reputation"
+import { detectReactionAnomaly } from "@/lib/ai/anomaly"
 
 export async function toggleReaction(
   targetId: string, 
@@ -73,6 +74,13 @@ export async function toggleReaction(
       ])
       reacted = true
       reactionType = type
+
+      // Trigger anomaly detection (Asynchronous for protocol responsiveness)
+      if (isPost) {
+        detectReactionAnomaly(targetId).catch(err => 
+          console.error("[ANOMALY_DETECTION_FAILED]", err)
+        )
+      }
     }
 
     // Update Redis Cache for real-time sync
