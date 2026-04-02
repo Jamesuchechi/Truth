@@ -3,11 +3,13 @@ import type { MessageType, ToneType } from "@prisma/client"
 
 export interface Reply {
   id: string
-  receiverId: string
+  receiverId: string | null
   content: string
   type: MessageType
   tone: ToneType | null
   senderId: string | null
+  senderEmail: string | null
+  senderName: string | null
   createdAt: Date
   readAt: Date | null
   deletedAt: Date | null
@@ -18,6 +20,7 @@ export interface Reply {
   parentId: string | null
   audioUrl: string | null
   transcription: string | null
+  conversationId: string | null
   sender?: {
     username: string
     image: string | null
@@ -27,11 +30,13 @@ export interface Reply {
 
 export interface Message {
   id: string
-  receiverId: string
+  receiverId: string | null
   content: string
   type: MessageType
   tone: ToneType | null
   senderId: string | null
+  senderEmail: string | null
+  senderName: string | null
   createdAt: Date
   readAt: Date | null
   deletedAt: Date | null
@@ -43,6 +48,7 @@ export interface Message {
   parentId: string | null
   audioUrl: string | null
   transcription: string | null
+  conversationId: string | null
   sender?: {
     username: string
     image: string | null
