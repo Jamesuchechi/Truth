@@ -18,6 +18,8 @@ model User {
   bio           String?
   username      String    @unique
   passwordHash  String?
+  createdAt     DateTime  @default(now())
+  hasCompletedOnboarding Boolean @default(false)
 
   // Anonymous Identity
   isAnonymous Boolean @default(false)

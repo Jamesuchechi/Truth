@@ -38,6 +38,8 @@ import { ReactionPicker } from "./ReactionPicker"
 import { useReactions } from "@/hooks/useReactions"
 import type { ReactionType } from "@prisma/client"
 import { Terminal, ScanFace } from "lucide-react"
+import { ReactionBurst } from "./ReactionBurst"
+import { fadeInUp, tapScale } from "@/lib/motion"
 
 export function PostCard({ 
   post, 
@@ -151,13 +153,15 @@ export function PostCard({
       onClick={trackClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
+      variants={fadeInUp}
+      initial="initial"
+      whileInView="animate"
+      viewport={{ once: true, margin: "-50px" }}
+      {...tapScale}
       className={`
-        group relative bg-truth-nearBlack border-2 p-8 mb-6 transition-all duration-500 shadow-[10px_10px_0px_rgba(0,0,0,0.3)]
-        ${isStory ? "border-truth-accentPurple shadow-[10px_10px_0px_rgba(168,85,247,0.1)]" : "border-truth-midGray hover:border-truth-accentRed hover:shadow-[12px_12px_0px_rgba(255,51,102,0.15)]"}
-        ${isDetail ? "scale-[1.02] shadow-[15px_15px_0px_rgba(0,0,0,0.4)]" : "cursor-pointer"}
+        group relative bg-card border-2 p-8 mb-6 transition-all duration-500 shadow-[10px_10px_0px_rgba(0,0,0,0.1)] dark:shadow-[10px_10px_0px_rgba(0,0,0,0.5)]
+        ${isStory ? "border-truth-accentPurple shadow-[10px_10px_0px_rgba(168,85,247,0.1)]" : "border-border hover:border-truth-accentRed hover:shadow-[12px_12px_0px_rgba(255,51,102,0.15)]"}
+        ${isDetail ? "scale-[1.02] shadow-[15px_15px_0px_rgba(0,0,0,0.2)] dark:shadow-[15px_15px_0px_rgba(0,0,0,0.6)]" : "cursor-pointer"}
       `}
     >
       {/* Header and other elements remain mostly the same, but we wrap content in Link if not detail */}
@@ -172,12 +176,12 @@ export function PostCard({
       {/* Header */}
       <div className="flex items-start justify-between mb-8 relative z-10">
         <div className="flex items-center gap-4">
-          <div className={`p-0.5 border-2 ${isShadow ? "border-truth-accentRed" : isStory ? "border-truth-accentPurple" : "border-truth-midGray"}`}>
-             <div className="w-10 h-10 bg-truth-darkGray flex items-center justify-center relative overflow-hidden">
+          <div className={`p-0.5 border-2 ${isShadow ? "border-truth-accentRed" : isStory ? "border-truth-accentPurple" : "border-border"}`}>
+             <div className="w-10 h-10 bg-background flex items-center justify-center relative overflow-hidden">
                {isShadow ? (
                  <Ghost className="w-5 h-5 text-truth-accentRed" />
                ) : (
-                 <div className="w-full h-full bg-truth-midGray" />
+                 <div className="w-full h-full bg-muted/20" />
                )}
                {/* Glitch Overlay */}
                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 pointer-events-none bg-linear-to-t from-truth-accentRed to-transparent animate-glitch" />
@@ -515,11 +519,9 @@ export function PostCard({
                 {/* Micro-burst Animation */}
                 <AnimatePresence>
                   {showBurst && (
-                    <motion.div
-                      initial={{ scale: 0, opacity: 1 }}
-                      animate={{ scale: 2.5, opacity: 0 }}
-                      exit={{ opacity: 0 }}
-                      className="absolute inset-0 bg-truth-accentRed/20 rounded-full z-0"
+                    <ReactionBurst 
+                      key={activeReaction}
+                      color={activeReaction === "STAY_STRONG" ? "#F97316" : activeReaction === "REAL_TALK" ? "#EF4444" : "#FF3366"} 
                     />
                   )}
                 </AnimatePresence>
@@ -678,7 +680,7 @@ export function PostCard({
       </AnimatePresence>
 
       <div className="absolute top-0 right-0 w-8 h-8 pointer-events-none overflow-hidden">
-         <div className={`absolute top-0 right-0 w-[200%] h-[200%] rotate-45 translate-x-1/2 -translate-y-1/2 ${isStory ? "bg-truth-accentPurple/20" : "bg-truth-midGray"}`} />
+         <div className={`absolute top-0 right-0 w-[200%] h-[200%] rotate-45 translate-x-1/2 -translate-y-1/2 ${isStory ? "bg-truth-accentPurple/20" : "bg-border/50"}`} />
       </div>
 
       <AnimatePresence>

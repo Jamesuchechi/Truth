@@ -401,6 +401,24 @@ export async function deleteAccount(): Promise<ActionState> {
   await signOut({ redirectTo: "/" })
   return { success: "Account deleted." }
 }
+
+export async function completeOnboarding(): Promise<ActionState> {
+  const session = await auth()
+  if (!session?.user?.id) return { error: "Unauthorized" }
+
+  try {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { hasCompletedOnboarding: true }
+    })
+
+    revalidatePath("/", "layout")
+    return { success: "Protocol initialization complete." }
+  } catch (error) {
+    console.error("Onboarding completion error:", error)
+    return { error: "Failed to finalize protocol." }
+  }
+}
 export async function getTwoFactorSecret() {
   const session = await auth()
   if (!session?.user?.id) return { error: "Unauthorized" }

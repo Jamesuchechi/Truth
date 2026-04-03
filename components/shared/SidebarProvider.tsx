@@ -5,12 +5,16 @@ import React, { createContext, useContext, useState, useEffect } from "react"
 interface SidebarContextType {
   isCollapsed: boolean
   toggleSidebar: () => void
+  isMobileMenuOpen: boolean
+  toggleMobileMenu: () => void
+  closeMobileMenu: () => void
 }
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined)
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   // Use useEffect to load from localStorage after mount to avoid hydration mismatch
   useEffect(() => {
@@ -32,8 +36,19 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     })
   }
 
+  const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev)
+  const closeMobileMenu = () => setIsMobileMenuOpen(false)
+
   return (
-    <SidebarContext.Provider value={{ isCollapsed, toggleSidebar }}>
+    <SidebarContext.Provider 
+      value={{ 
+        isCollapsed, 
+        toggleSidebar, 
+        isMobileMenuOpen, 
+        toggleMobileMenu,
+        closeMobileMenu 
+      }}
+    >
       {children}
     </SidebarContext.Provider>
   )

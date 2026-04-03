@@ -59,10 +59,24 @@ export default function NotificationItem({ notification }: NotificationItemProps
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 100 }}
+      drag="x"
+      dragConstraints={{ left: 0, right: 100 }}
+      dragElastic={{ right: 0.1, left: 0 }}
+      onDragEnd={(_, info) => {
+        if (info.offset.x > 80) {
+          handleMarkRead()
+        }
+      }}
       className={`relative group border-2 transition-all ${notification.read ? 'bg-truth-nearBlack/40 border-truth-midGray/20' : 'bg-truth-nearBlack border-truth-accentRed/30 shadow-[4px_4px_0px_rgba(255,51,102,0.1)] hover:border-truth-accentRed/60'}`}
     >
+      {/* Swipe Indicator Background */}
+      <div className="absolute inset-0 bg-truth-accentRed/10 flex items-center px-6 -z-10">
+        <Bell className="w-4 h-4 text-truth-accentRed animate-pulse" />
+      </div>
+
       <Link 
         href={href} 
         onClick={handleMarkRead}

@@ -4,6 +4,7 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react"
 import Image from "next/image"
+import { Skeleton } from "@/components/ui/Skeleton"
 
 interface ImageCarouselProps {
   media: { url: string; type: "IMAGE" | "VIDEO" | "AUDIO" }[]
@@ -13,6 +14,7 @@ interface ImageCarouselProps {
 export default function ImageCarousel({ media, priority = false }: ImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [direction, setDirection] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
 
   const slideVariants = {
     enter: (direction: number) => ({
@@ -38,6 +40,7 @@ export default function ImageCarousel({ media, priority = false }: ImageCarousel
 
   const paginate = (newDirection: number) => {
     const newIndex = (currentIndex + newDirection + media.length) % media.length
+    setIsLoading(true)
     setDirection(newDirection)
     setCurrentIndex(newIndex)
   }
@@ -45,7 +48,7 @@ export default function ImageCarousel({ media, priority = false }: ImageCarousel
   if (media.length === 0) return null
 
   return (
-    <div className="relative group aspect-video md:aspect-square w-full bg-black rounded-xl overflow-hidden border border-truth-midGray/30 shadow-2xl">
+    <div className="relative group aspect-video md:aspect-square w-full bg-card rounded-xl overflow-hidden border border-border shadow-2xl">
       <AnimatePresence initial={false} custom={direction}>
         <motion.div
           key={currentIndex}
@@ -72,11 +75,17 @@ export default function ImageCarousel({ media, priority = false }: ImageCarousel
           }}
           className="absolute inset-0"
         >
+          <AnimatePresence>
+            {isLoading && (
+              <Skeleton className="absolute inset-0 z-10" />
+            )}
+          </AnimatePresence>
           <Image
             src={media[currentIndex].url}
             alt={`Transmission Frame ${currentIndex + 1}`}
             fill
-            className="object-cover"
+            className={`object-cover transition-all duration-700 ${isLoading ? 'scale-110 blur-2xl opacity-0' : 'scale-100 blur-0 opacity-100'}`}
+            onLoadingComplete={() => setIsLoading(false)}
             priority={priority && currentIndex === 0}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />

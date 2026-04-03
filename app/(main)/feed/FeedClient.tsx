@@ -25,6 +25,8 @@ import {
 import StoriesBar from "@/components/feed/StoriesBar"
 import ComposeModal from "@/components/feed/ComposeModal"
 import FeedSkeleton from "@/components/feed/FeedSkeleton"
+import { motion, AnimatePresence } from "framer-motion"
+import { staggerContainer } from "@/lib/motion"
 
 type FeedTab = "FOR_YOU" | "FRESH" | "FOLLOWING" | "TRENDING" | "DEEP_DIVE" | "QUICK_HITS"
 
@@ -148,8 +150,8 @@ export default function FeedClient({ initialPosts, stories, user }: FeedClientPr
             className={`
               flex items-center gap-2 px-6 py-3 font-mono text-[9px] uppercase tracking-widest border-2 transition-all shrink-0
               ${activeTab === tab.id 
-                ? `bg-truth-nearBlack ${tab.color} ${tab.border} shadow-[4px_4px_0px_rgba(255,255,255,0.1)]` 
-                : "bg-transparent border-truth-midGray text-truth-textGray hover:border-truth-textGray"}
+                ? `bg-card ${tab.color} ${tab.border} shadow-[4px_4px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_10px_rgba(255,255,255,0.05)]` 
+                : "bg-transparent border-border text-muted hover:border-foreground hover:text-foreground"}
             `}
           >
             <tab.icon className="w-3 h-3" /> {tab.label}
@@ -163,16 +165,23 @@ export default function FeedClient({ initialPosts, stories, user }: FeedClientPr
         {isPending ? (
           <FeedSkeleton />
         ) : displayedPosts.length > 0 ? (
-          <>
-            {displayedPosts.map((post, index) => (
-              <PostCard key={post.id} post={post} priority={index < 2} />
-            ))}
+          <motion.div 
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+            className="flex flex-col gap-0"
+          >
+            <AnimatePresence mode="popLayout">
+              {displayedPosts.map((post, index) => (
+                <PostCard key={post.id} post={post} priority={index < 2} />
+              ))}
+            </AnimatePresence>
             
             <div ref={observerTarget} className="h-20 flex items-center justify-center">
               {isLoadingMore && (
                 <div className="flex flex-col items-center gap-2">
                   <Loader2 className="w-6 h-6 text-truth-accentRed animate-spin" />
-                  <span className="font-mono text-[8px] text-truth-textGray uppercase tracking-widest">
+                  <span className="font-mono text-[8px] text-muted uppercase tracking-widest">
                     PULLING_NEXT_SIGNAL_POOL...
                   </span>
                 </div>
@@ -180,27 +189,27 @@ export default function FeedClient({ initialPosts, stories, user }: FeedClientPr
               {!isLoadingMore && feeds[activeTab].hasMore && (
                 <button 
                   onClick={loadMore}
-                  className="font-mono text-[9px] text-truth-textGray hover:text-truth-textLight uppercase tracking-widest border border-dashed border-truth-midGray/30 px-6 py-2 transition-colors"
+                  className="font-mono text-[9px] text-muted hover:text-foreground uppercase tracking-widest border border-dashed border-border px-6 py-2 transition-colors bg-card/50"
                 >
                   MANUAL_FETCH_OVERRIDE_ENABLED [LOAD_MORE]
                 </button>
               )}
               {!feeds[activeTab].hasMore && (
                 <div className="py-10 text-center opacity-30">
-                   <div className="h-px bg-truth-midGray w-24 mx-auto mb-4" />
-                   <p className="font-mono text-[8px] text-truth-textGray uppercase tracking-[0.4em]">
+                   <div className="h-px bg-border w-24 mx-auto mb-4" />
+                   <p className="font-mono text-[8px] text-muted uppercase tracking-[0.4em]">
                      END_OF_OBSERVABLE_STREAM
                    </p>
                 </div>
               )}
             </div>
-          </>
+          </motion.div>
         ) : (
-          <div className="py-24 text-center border-4 border-dashed border-truth-midGray bg-truth-nearBlack/20 group">
+          <div className="py-24 text-center border-4 border-dashed border-border bg-card/20 group">
              <div className="mb-4 flex justify-center">
-               <Ghost className="w-12 h-12 text-truth-textGray/20 group-hover:text-truth-accentRed/40 transition-colors" />
+               <Ghost className="w-12 h-12 text-muted/20 group-hover:text-truth-accentRed/40 transition-colors" />
              </div>
-             <p className="font-mono text-[10px] text-truth-textGray uppercase tracking-widest leading-relaxed">
+             <p className="font-mono text-[10px] text-muted uppercase tracking-widest leading-relaxed">
                {activeTab === "FOLLOWING" 
                  ? "No synchronized signals detected from observed nodes." 
                  : "The void remains silent. Be the first to emit a pulse."}

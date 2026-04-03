@@ -58,6 +58,7 @@ export default function ChatClient({ conversationId, initialMessages, currentUse
             parentId: null,
             audioUrl: null,
             transcription: null,
+            isRestored: false,
             conversationId,
             sender: {
                 username: "Me",

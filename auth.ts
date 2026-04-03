@@ -29,6 +29,7 @@ declare module "next-auth" {
     shadowName?: string | null
     defaultShadowMode?: boolean
     showShadowOnProfile?: boolean
+    hasCompletedOnboarding?: boolean
   }
   interface Session {
     user: {
@@ -50,6 +51,7 @@ declare module "next-auth" {
       shadowName?: string | null
       defaultShadowMode?: boolean
       showShadowOnProfile?: boolean
+      hasCompletedOnboarding?: boolean
     } & DefaultSession["user"]
   }
 }
@@ -147,6 +149,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.shadowName = user.shadowName
         token.defaultShadowMode = user.defaultShadowMode
         token.showShadowOnProfile = user.showShadowOnProfile
+        token.hasCompletedOnboarding = user.hasCompletedOnboarding
       }
       if (trigger === "update" && session) {
         token.username = session.username
@@ -184,6 +187,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.shadowName = token.shadowName as string
         session.user.defaultShadowMode = token.defaultShadowMode as boolean
         session.user.showShadowOnProfile = token.showShadowOnProfile as boolean
+        session.user.hasCompletedOnboarding = token.hasCompletedOnboarding as boolean
       }
       return session
     },
