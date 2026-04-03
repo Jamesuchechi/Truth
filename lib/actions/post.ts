@@ -9,6 +9,7 @@ import type { VisibilityType, MediaType } from "@prisma/client"
 import { postInclude } from "@/lib/types/post"
 import { syncUserReputation } from "./reputation"
 import { analyzeContent } from "@/lib/ai/moderation"
+import { checkRateLimit, isDuplicateSignal, isGlobalDuplicate, recordPostHistory } from "@/lib/moderation/spam"
 
 const MediaItemSchema = z.object({
   url: z.string().url("Invalid protocol signal URL."),
@@ -76,6 +77,21 @@ export async function createPost(formData: FormData) {
       expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
     }
 
+    // Phase 7.7: Spam & Abuse Prevention
+    const rateLimit = await checkRateLimit(session.user.id)
+    if (!rateLimit.success) {
+      return { error: `PROTOCOL_VIOLATION: ${rateLimit.reason}` }
+    }
+
+    const [isLocalDup, isGlobalDup] = await Promise.all([
+      isDuplicateSignal(session.user.id, content),
+      isGlobalDuplicate(content)
+    ])
+
+    if (isLocalDup || isGlobalDup) {
+      return { error: "SIGNAL_REJECTED: DUPLICATE_CONTENT_DETECTED" }
+    }
+
     // AI Analysis (Synchronous for protocol integrity)
     const analysis = await analyzeContent(content)
 
@@ -109,6 +125,9 @@ export async function createPost(formData: FormData) {
         } : undefined,
       }
     })
+
+    // Record successful signal
+    await recordPostHistory(session.user.id, content)
 
     revalidatePath("/feed")
     revalidatePath(`/${session.user.username}`)

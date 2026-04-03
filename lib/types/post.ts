@@ -41,6 +41,12 @@ export const postInclude = {
       userId: true,
       createdAt: true,
     }
+  },
+  reports: {
+    select: {
+      id: true,
+      status: true,
+    }
   }
 } satisfies Prisma.PostInclude
 

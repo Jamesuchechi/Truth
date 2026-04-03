@@ -5,7 +5,6 @@ import Link from "next/link"
 import { 
   Heart, 
   MessageCircle, 
-  Share2, 
   MoreHorizontal, 
   Ghost, 
   Zap,
@@ -15,9 +14,13 @@ import {
   Edit3,
   Trash2,
   Archive,
-  AlertCircle,
-  CheckCircle
+  CheckCircle,
+  ShieldAlert,
+  ShieldCheck,
+  AlertTriangle
 } from "lucide-react"
+import { ReportModal } from "@/components/moderation/ReportModal"
+import { AppealModal } from "@/components/moderation/AppealModal"
 import { motion, AnimatePresence } from "framer-motion"
 import ReactMarkdown from "react-markdown"
 import { useSession } from "next-auth/react"
@@ -53,6 +56,8 @@ export function PostCard({
 
   // Management State
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+  const [isAppealModalOpen, setIsAppealModalOpen] = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(post.content)
@@ -227,6 +232,12 @@ export function PostCard({
               </span>
 
               <span>{" // "} {formatRelativeTime(post.createdAt)}</span>
+              {post.isRestored && (
+                <span className="flex items-center gap-1 text-truth-accentGreen border border-truth-accentGreen/30 bg-truth-accentGreen/5 px-1.5 py-0.5 font-black animate-pulse">
+                  <ShieldCheck className="w-2.5 h-2.5" />
+                  RESTORED_SIGNAL
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -283,8 +294,11 @@ export function PostCard({
                   </>
                 )}
                 {!isAuthor && (
-                  <button className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-mono text-truth-textGray hover:text-truth-accentRed hover:bg-truth-darkGray transition-all uppercase tracking-widest">
-                    <AlertCircle className="w-4 h-4" />
+                  <button 
+                    onClick={() => { setIsReportModalOpen(true); setIsMenuOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-mono text-truth-textGray hover:text-truth-accentRed hover:bg-truth-darkGray transition-all uppercase tracking-widest"
+                  >
+                    <ShieldAlert className="w-4 h-4" />
                     REPORT_SIGNAL
                   </button>
                 )}
@@ -296,7 +310,27 @@ export function PostCard({
 
       {/* Content Section */}
       <div className="space-y-6 mb-8 relative z-10">
-        {isEditing ? (
+        {post.isFiltered && !isAuthor ? (
+          <div className="py-12 flex flex-col items-center gap-4 bg-truth-accentRed/5 border-2 border-dashed border-truth-accentRed/20">
+             <ShieldAlert className="w-12 h-12 text-truth-accentRed opacity-20" />
+             <p className="font-mono text-[10px] text-truth-textGray uppercase tracking-widest">Signal terminated by autonomous protocol.</p>
+          </div>
+        ) : post.isFiltered && isAuthor ? (
+          <div className="p-6 bg-truth-accentRed/10 border-2 border-truth-accentRed space-y-4">
+             <div className="flex items-center gap-3 text-truth-accentRed font-mono text-[10px] uppercase font-black">
+                <AlertTriangle className="w-4 h-4" /> TRANSMISSION_FILTERED
+             </div>
+             <p className="font-bitter text-sm text-truth-textLight leading-relaxed">
+               Your signal has been quarantined by the AI moderation layer. No other nodes can observe this content.
+             </p>
+             <button 
+               onClick={(e) => { e.stopPropagation(); setIsAppealModalOpen(true); }}
+               className="w-full py-3 bg-truth-accentRed text-white font-mono text-[9px] uppercase font-black tracking-widest hover:brightness-110 transition-all"
+             >
+               FILE_PROTOCOL_APPEAL
+             </button>
+          </div>
+        ) : isEditing ? (
           <div className="space-y-4">
             <textarea
               value={editContent}
@@ -574,9 +608,16 @@ export function PostCard({
             <span className="font-mono text-[10px] uppercase font-bold">{commentCount}</span>
           </button>
 
-          <button className="flex items-center gap-2 text-truth-textGray hover:text-truth-accentPurple transition-all group/btn">
-            <div className="p-2 border border-transparent group-hover/btn:border-truth-accentPurple transition-all">
-              <Share2 className="w-4 h-4" />
+          <button 
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsReportModalOpen(true)
+            }}
+            className="flex items-center gap-2 text-truth-textGray hover:text-truth-accentRed transition-all group/btn"
+            title="Report Signal Violation"
+          >
+            <div className="p-2 border border-transparent group-hover/btn:border-truth-accentRed transition-all">
+              <ShieldAlert className="w-4 h-4" />
             </div>
           </button>
         </div>
@@ -651,6 +692,19 @@ export function PostCard({
            <Zap className="w-8 h-8 text-truth-accentBlue animate-pulse" />
         </div>
       )}
+
+      <ReportModal 
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        targetId={post.id}
+        type="POST"
+      />
+
+      <AppealModal 
+        isOpen={isAppealModalOpen}
+        onClose={() => setIsAppealModalOpen(false)}
+        reportId={post.reports?.[0]?.id || ""}
+      />
     </motion.div>
   )
 }

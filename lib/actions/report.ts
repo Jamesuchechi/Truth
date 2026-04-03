@@ -4,6 +4,7 @@
 import { prisma } from "@/lib/db/prisma"
 import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
+import { ReportPriority, ReputationTier } from "@prisma/client"
 import type { ReportReason, ReportStatus } from "@prisma/client"
 
 /**
@@ -13,25 +14,75 @@ export async function reportContent({
   targetId,
   type,
   reason,
-  description
+  description,
+  isAnonymous = false
 }: {
   targetId: string
   type: 'POST' | 'MESSAGE'
   reason: ReportReason
   description?: string
+  isAnonymous?: boolean
 }) {
   const session = await auth()
   if (!session?.user?.id) return { error: "Unauthorized: Signal source unidentified." }
 
   try {
+    // 1. Check for existing reports (aggregation)
+    const existingReports = await prisma.report.findFirst({
+      where: {
+        ...(type === 'POST' ? { postId: targetId } : { messageId: targetId }),
+      },
+      orderBy: { createdAt: 'desc' }
+    })
+
+    // 2. Fetch reporter and target info for prioritization
+    const reporter = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { reputationTier: true }
+    })
+
+    const targetContent = type === 'POST' 
+      ? await prisma.post.findUnique({ where: { id: targetId }, select: { toxicityScore: true, authorId: true } })
+      : await prisma.message.findUnique({ where: { id: targetId }, select: { tone: true, senderId: true } })
+
+    // 3. Calculate Priority
+    let priority: ReportPriority = ReportPriority.LOW
+    
+    // Severity based on toxicity
+    const toxicity = targetContent && 'toxicityScore' in targetContent ? (targetContent.toxicityScore as number) : 0
+    if (toxicity > 0.9 || reason === 'SELF_HARM' || reason === 'VIOLENCE') priority = ReportPriority.CRITICAL
+    else if (toxicity > 0.7 || reason === 'HATE_SPEECH') priority = ReportPriority.HIGH
+    else if (toxicity > 0.5) priority = ReportPriority.MEDIUM
+
+    // Reputation Boost (Guardian/Oracle)
+    if (reporter?.reputationTier === ReputationTier.GUARDIAN || reporter?.reputationTier === ReputationTier.ORACLE) {
+      if (priority === ReportPriority.LOW) priority = ReportPriority.MEDIUM
+      else if (priority === ReportPriority.MEDIUM) priority = ReportPriority.HIGH
+      else if (priority === ReportPriority.HIGH) priority = ReportPriority.CRITICAL
+    }
+
+    // 4. Create or Update Report
     const report = await prisma.report.create({
       data: {
         reporterId: session.user.id,
         reason,
         description,
-        ...(type === 'POST' ? { postId: targetId } : { messageId: targetId })
+        isAnonymous,
+        priority,
+        ...(type === 'POST' ? { postId: targetId } : { messageId: targetId }),
+        duplicateCount: existingReports ? existingReports.duplicateCount + 1 : 1
       }
     })
+
+    // 5. Automated Action Trigger (Auto-Hide after 10 reports)
+    if (report.duplicateCount >= 10) {
+      if (type === 'POST') {
+        await prisma.post.update({
+          where: { id: targetId },
+          data: { isFiltered: true }
+        })
+      }
+    }
 
     return { success: "Report filed successfully. Protocol monitoring active.", id: report.id }
   } catch (error) {
@@ -94,19 +145,37 @@ export async function getPendingReports() {
     return []
   }
 
-  return await prisma.report.findMany({
+  const reports = await prisma.report.findMany({
     where: { status: 'PENDING' },
     include: {
       reporter: {
-        select: { username: true, shadowName: true }
+        select: { username: true, shadowName: true, reputationTier: true, credibilityScore: true }
       },
       post: {
-        include: { author: { select: { username: true } } }
+        include: { 
+          author: { select: { username: true, status: true, reputationTier: true } } 
+        }
       },
       message: {
-        include: { sender: { select: { username: true } } }
+        include: { 
+          sender: { select: { username: true, status: true, reputationTier: true } } 
+        }
+      },
+      moderatorNotes: {
+        include: { author: { select: { username: true } } },
+        orderBy: { createdAt: 'desc' }
       }
     },
     orderBy: { createdAt: "desc" }
   })
+
+  // Manual sorting by priority (CRITICAL > HIGH > MEDIUM > LOW)
+  const priorityMap: Record<ReportPriority, number> = {
+    CRITICAL: 4,
+    HIGH: 3,
+    MEDIUM: 2,
+    LOW: 1
+  }
+
+  return reports.sort((a, b) => priorityMap[b.priority] - priorityMap[a.priority])
 }

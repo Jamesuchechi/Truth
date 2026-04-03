@@ -25,7 +25,12 @@ export async function getForYouFeed(limit = 20, cursor?: string) {
   let result
   if (!userId) {
     const posts = await prisma.post.findMany({
-      where: { deletedAt: null, visibilityType: "PUBLIC", parentId: null },
+      where: { 
+        deletedAt: null, 
+        visibilityType: "PUBLIC", 
+        parentId: null,
+        author: { status: { not: "SHADOW_BANNED" } }
+      },
       take: limit,
       ...(cursor && { cursor: { id: cursor }, skip: 1 }),
       orderBy: { createdAt: "desc" },
@@ -66,6 +71,7 @@ export async function getFreshFeed(limit = 20, cursor?: string) {
       deletedAt: null,
       visibilityType: "PUBLIC",
       parentId: null,
+      author: { status: { not: "SHADOW_BANNED" } },
       ...(channelIds.length > 0 && { channelId: { in: channelIds } })
     },
     take: limit,
@@ -135,6 +141,7 @@ export async function getFollowingFeed(limit = 20, cursor?: string) {
   const posts = await prisma.post.findMany({
     where: {
       authorId: { in: followingIds },
+      author: { status: { not: "SHADOW_BANNED" } },
       deletedAt: null,
       parentId: null,
       visibilityType: { in: ["PUBLIC", "FOLLOWERS_ONLY"] }

@@ -48,6 +48,8 @@ export interface AnalysisResult {
   sentiment: string
   emotions: string[]
   shouldWarn: boolean
+  isSarcastic?: boolean
+  culturalSensitivityScore?: number
 }
 
 /**
@@ -92,7 +94,11 @@ export async function analyzeContent(content: string): Promise<AnalysisResult> {
       - confidence: (0.0 to 1.0) For the tone detection.
       - sentiment: (Positive, Negative, Neutral).
       - emotions: Array of detected emotions (e.g., ["anger", "sadness"]).
-      - summary: Briefly describe why it's toxic if toxicity > 0.5.
+      - isSarcastic: (True/False) Is the message likely sarcastic or ironic?
+      - culturalSensitivity: (0.0 to 1.0) High score if it contains culturally insensitive or offensive phrasing.
+      - summary: Briefly describe why it's toxic, sarcastic, or insensitive.
+      
+      Context: The Truth protocol values raw honesty but prohibits targeted harassment and hate.
       
       Message: "${content}"
     `
@@ -139,7 +145,9 @@ export async function analyzeContent(content: string): Promise<AnalysisResult> {
       toneConfidence: raw.confidence || 0.5,
       sentiment: raw.sentiment || 'Neutral',
       emotions: emotions,
-      shouldWarn
+      shouldWarn,
+      isSarcastic: raw.isSarcastic || false,
+      culturalSensitivityScore: raw.culturalSensitivity || 0
     }
   } catch (error) {
     console.error("Content analysis system failure:", error)
