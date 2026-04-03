@@ -1,8 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import { Menu, Terminal } from "lucide-react"
+import { Menu } from "lucide-react"
 import { useSidebar } from "./SidebarProvider"
+import Logo from "./Logo"
 
 export default function MobileHeader() {
   const { toggleMobileMenu } = useSidebar()
@@ -10,9 +11,7 @@ export default function MobileHeader() {
   return (
     <header className="sticky top-0 left-0 right-0 h-16 bg-card/80 backdrop-blur-xl border-b-2 border-border z-50 flex items-center justify-between px-6 lg:hidden">
       <Link href="/feed" className="flex items-center gap-2 group">
-        <div className="w-8 h-8 bg-truth-accentRed flex items-center justify-center rounded-sm group-active:scale-95 transition-transform">
-          <Terminal className="w-5 h-5 text-black" />
-        </div>
+        <Logo size={32} className="group-active:scale-95 transition-transform" />
         <span className="font-bitter text-xl font-black uppercase tracking-tighter text-foreground">
           TRUTH<span className="text-truth-accentRed">OS</span>
         </span>

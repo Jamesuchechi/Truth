@@ -3,7 +3,7 @@
 import { useState, useActionState } from "react"
 import { MessageType, ToneType } from "@prisma/client"
 import { 
-    Zap, Send, MessageSquare, AlertCircle, Sparkles, 
+    Send, MessageSquare, AlertCircle, Sparkles, 
     HelpCircle, Heart, CheckCircle2, Shield, Mic, Headphones, Loader2
 } from "lucide-react"
 import { sendMessage } from "@/lib/actions/message"
@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useSession } from "next-auth/react"
 import VoiceRecorder from "./VoiceRecorder"
 import { Turnstile } from "@marsidev/react-turnstile"
+import Logo from "@/components/shared/Logo"
 
 interface MessagingFormProps {
   receiverId: string
@@ -22,7 +23,7 @@ type MessageMode = "TEXT" | "VOICE"
 
 const MESSAGE_TYPES = [
   { id: MessageType.TEXT, icon: MessageSquare, label: "Text", color: "text-truth-accentBlue" },
-  { id: MessageType.CONFESSION, icon: Zap, label: "Confession", color: "text-truth-accentRed" },
+  { id: MessageType.CONFESSION, icon: Logo, label: "Confession", color: "text-truth-accentRed" },
   { id: MessageType.QUESTION, icon: HelpCircle, label: "Question", color: "text-truth-accentGreen" },
   { id: MessageType.COMPLIMENT, icon: Heart, label: "Compliment", color: "text-truth-accentYellow" },
 ]

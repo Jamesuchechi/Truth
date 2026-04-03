@@ -92,7 +92,7 @@ export default function MessageItem({ message, isSelected, onSelect, isSelectMod
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className={`group relative border-2 transition-all duration-300 overflow-hidden
-        ${isSelected ? "border-truth-accentRed bg-truth-accentRed/5" : "border-truth-midGray bg-truth-nearBlack hover:border-truth-textGray"}
+        ${isSelected ? "border-truth-accentRed bg-truth-accentRed/5" : "border-truth-surface-border bg-truth-surface hover:border-truth-on-surface-muted"}
         ${!message.readAt ? "border-l-8 border-l-truth-accentRed" : ""}`}
       onClick={() => {
         if (isSelectMode) onSelect?.(message.id)
@@ -102,7 +102,7 @@ export default function MessageItem({ message, isSelected, onSelect, isSelectMod
       <div className="flex items-stretch min-h-[100px]">
         {/* Selection Strip */}
         <div 
-          className={`w-12 flex items-center justify-center border-r border-truth-midGray transition-colors ${isSelected ? "bg-truth-accentRed text-truth-bg" : "bg-truth-nearBlack text-truth-textGray group-hover:bg-truth-darkGray"}`}
+          className={`w-12 flex items-center justify-center border-r border-truth-surface-border transition-colors ${isSelected ? "bg-truth-accentRed text-truth-bg" : "bg-truth-surface-nested text-truth-on-surface-muted group-hover:bg-truth-surface-nested"}`}
           onClick={(e) => {
             e.stopPropagation()
             onSelect?.(message.id)
@@ -122,11 +122,11 @@ export default function MessageItem({ message, isSelected, onSelect, isSelectMod
               <span className={`font-mono text-[8px] font-black uppercase tracking-widest px-2 py-0.5 border border-current ${toneConfig.text}`}>
                 {toneConfig.label}
               </span>
-              <div className="flex items-center gap-1.5 font-mono text-[9px] text-truth-textGray uppercase">
+              <div className="flex items-center gap-1.5 font-mono text-[9px] text-truth-on-surface-muted uppercase">
                 <Icon className={`w-3 h-3 ${config.color}`} />
                 {message.type}
               </div>
-              <span className="font-mono text-[9px] text-truth-textGray/40">
+              <span className="font-mono text-[9px] text-truth-on-surface-muted/60">
                 {formatDistanceToNow(new Date(message.createdAt))} ago
               </span>
             </div>
@@ -150,7 +150,7 @@ export default function MessageItem({ message, isSelected, onSelect, isSelectMod
           </div>
 
           <div className="mt-3 flex items-center gap-4">
-            <p className={`font-bitter text-sm line-clamp-1 flex-1 ${!message.readAt ? "text-truth-textLight font-bold" : "text-truth-textGray"}`}>
+            <p className={`font-bitter text-sm line-clamp-1 flex-1 ${!message.readAt ? "text-truth-on-surface font-bold" : "text-truth-on-surface-muted"}`}>
               {message.type === MessageType.VOICE ? "[SECURE_VOCAL_SIGNAL]" : message.content}
             </p>
             {message.type === MessageType.VOICE && (
@@ -163,8 +163,8 @@ export default function MessageItem({ message, isSelected, onSelect, isSelectMod
         </div>
 
         {/* Expand Toggle */}
-        <div className="w-12 border-l border-truth-midGray flex items-center justify-center bg-truth-darkGray/10">
-            <button className={`p-3 text-truth-textGray hover:text-truth-textLight transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
+        <div className="w-12 border-l border-truth-surface-border flex items-center justify-center bg-truth-surface-nested/50">
+            <button className={`p-3 text-truth-on-surface-muted hover:text-truth-on-surface transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}>
                 <ChevronDown className="w-4 h-4" />
             </button>
         </div>
@@ -177,13 +177,13 @@ export default function MessageItem({ message, isSelected, onSelect, isSelectMod
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="border-t border-truth-midGray bg-black/40"
+            className="border-t border-truth-surface-border bg-truth-surface-nested/60"
           >
             <div className="p-8 space-y-8">
               {/* Origin Section */}
-              <div className="flex items-center justify-between p-4 bg-truth-darkGray/30 border border-truth-midGray">
+              <div className="flex items-center justify-between p-4 bg-truth-surface-nested border border-truth-surface-border">
                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-truth-nearBlack border-2 border-truth-midGray flex items-center justify-center overflow-hidden">
+                    <div className="w-12 h-12 bg-truth-surface border-2 border-truth-surface-border flex items-center justify-center overflow-hidden">
                        {message.revealSender && message.sender ? (
                           <Image 
                             src={message.sender.image || "/avatar-placeholder.png"} 
@@ -197,8 +197,8 @@ export default function MessageItem({ message, isSelected, onSelect, isSelectMod
                        )}
                     </div>
                     <div>
-                        <span className="font-mono text-[9px] text-truth-textGray uppercase block mb-1">Signal_Origin:</span>
-                        <h4 className="font-mono text-xs font-black text-truth-textLight uppercase tracking-tighter">
+                        <span className="font-mono text-[9px] text-truth-on-surface-muted uppercase block mb-1">Signal_Origin:</span>
+                        <h4 className="font-mono text-xs font-black text-truth-on-surface uppercase tracking-tighter">
                             {message.revealSender && message.sender ? message.sender.username : "ANONYMOUS_FREQUENCE"}
                         </h4>
                     </div>
@@ -218,7 +218,7 @@ export default function MessageItem({ message, isSelected, onSelect, isSelectMod
 
               {/* Translation/Playback Area */}
               <div className="space-y-4">
-                 <span className="font-mono text-[9px] text-truth-textGray uppercase tracking-[0.4em] block">Payload_Decryption:</span>
+                 <span className="font-mono text-[9px] text-truth-on-surface-muted uppercase tracking-[0.4em] block">Payload_Decryption:</span>
                  
                  {message.type === MessageType.VOICE ? (
                     <div className="space-y-6">
@@ -259,22 +259,22 @@ export default function MessageItem({ message, isSelected, onSelect, isSelectMod
                         />
                     </div>
                  ) : (
-                    <p className="font-bitter text-xl text-truth-textLight leading-relaxed">
+                    <p className="font-bitter text-xl text-truth-on-surface leading-relaxed">
                         {message.content}
                     </p>
                  )}
               </div>
 
               {/* Footer Actions */}
-              <div className="flex items-center gap-4 pt-4 border-t border-truth-midGray">
-                 <button className="flex-1 bg-truth-textLight text-truth-bg py-4 font-mono text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all flex items-center justify-center gap-3 shadow-[4px_4px_0px_rgba(255,255,255,0.1)]">
+              <div className="flex items-center gap-4 pt-4 border-t border-truth-surface-border">
+                 <button className="flex-1 bg-truth-on-surface text-truth-surface py-4 font-mono text-[10px] font-black uppercase tracking-[0.2em] hover:bg-truth-accentRed hover:text-white transition-all flex items-center justify-center gap-3 shadow-[4px_4px_0px_rgba(0,0,0,0.1)]">
                     <ReplyIcon className="w-4 h-4" />
                     Transmit_Response
                  </button>
                  <button 
                     onClick={handleDelete}
                     disabled={isActionsLoading}
-                    className="p-4 border-2 border-truth-midGray text-truth-textGray hover:text-truth-accentRed hover:border-truth-accentRed transition-all"
+                    className="p-4 border-2 border-truth-surface-border text-truth-on-surface-muted hover:text-truth-accentRed hover:border-truth-accentRed transition-all"
                  >
                     {isActionsLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
                  </button>

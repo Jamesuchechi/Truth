@@ -14,13 +14,13 @@ export default async function NotificationsPage() {
   return (
     <div className="max-w-3xl mx-auto py-12 px-6 animate-fadeIn">
       <div className="mb-12 relative">
-        <div className="flex items-center gap-6 border-b-4 border-truth-accentRed pb-8">
-           <div className="w-16 h-16 bg-truth-accentRed flex items-center justify-center shadow-[8px_8px_0px_rgba(255,51,102,0.2)]">
-              <Bell className="w-8 h-8 text-truth-bg animate-pulse" />
+        <div className="flex items-center gap-4 sm:gap-6 border-b-4 border-truth-accentRed pb-8 flex-wrap">
+           <div className="w-12 h-12 sm:w-16 sm:h-16 bg-truth-accentRed flex items-center justify-center shadow-[8px_8px_0px_rgba(255,51,102,0.2)] shrink-0">
+              <Bell className="w-6 h-6 sm:w-8 sm:h-8 text-truth-bg animate-pulse" />
            </div>
-           <div>
-              <h1 className="font-bitter text-5xl font-black text-truth-textLight uppercase tracking-tighter">Signal_Center</h1>
-              <p className="font-mono text-xs text-truth-accentRed uppercase tracking-[0.3em] mt-1 font-bold italic">Node_Status: Online // Decryption_Active</p>
+           <div className="min-w-0">
+              <h1 className="font-bitter text-4xl sm:text-5xl font-black text-truth-textLight uppercase tracking-tighter leading-tight">Signal_Center</h1>
+              <p className="font-mono text-[10px] sm:text-xs text-truth-accentRed uppercase tracking-[0.2em] sm:tracking-[0.3em] mt-1 font-bold italic">Node_Status: Online // Decryption_Active</p>
            </div>
         </div>
         
@@ -31,7 +31,7 @@ export default async function NotificationsPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-12">
-        <section className="bg-truth-nearBlack/30 p-8 border-2 border-truth-midGray/20 relative overflow-hidden group">
+        <section className="bg-truth-surface p-4 sm:p-8 border-2 border-truth-surface-border relative overflow-hidden group">
            {/* Background Grid for Brutalist Feel */}
            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-size-[20px_20px] pointer-events-none opacity-20" />
            

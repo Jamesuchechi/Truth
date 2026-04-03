@@ -39,7 +39,7 @@ export default function ChannelCard({ channel }: { channel: Channel }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -5 }}
-      className="bg-truth-nearBlack border-2 border-truth-midGray p-6 relative group overflow-hidden"
+      className="bg-truth-surface border-2 border-truth-surface-border p-6 relative group overflow-hidden"
     >
       {/* Accent Color Strip */}
       <div 
@@ -50,16 +50,16 @@ export default function ChannelCard({ channel }: { channel: Channel }) {
       <div className="flex items-start justify-between mb-6">
         <div className="flex items-center gap-3">
            <div 
-             className="w-12 h-12 flex items-center justify-center border-2 border-truth-midGray bg-truth-darkGray group-hover:border-truth-accentRed transition-colors"
+             className="w-12 h-12 flex items-center justify-center border-2 border-truth-surface-border bg-truth-surface-nested group-hover:border-truth-accentRed transition-colors"
              style={{ color: channel.color || "#FF3366" }}
            >
              <Hash className="w-6 h-6" />
            </div>
            <div>
-             <h3 className="font-bitter font-black text-xl text-truth-textLight uppercase tracking-tight group-hover:text-truth-accentRed transition-colors">
+             <h3 className="font-bitter font-black text-xl text-truth-on-surface uppercase tracking-tight group-hover:text-truth-accentRed transition-colors">
                {channel.name}
              </h3>
-             <span className="font-mono text-[9px] text-truth-textGray uppercase tracking-widest">
+             <span className="font-mono text-[9px] text-truth-on-surface-muted uppercase tracking-widest">
                {channel.slug}_signal.proto
              </span>
            </div>
@@ -72,7 +72,7 @@ export default function ChannelCard({ channel }: { channel: Channel }) {
             px-4 py-2 font-mono text-[10px] uppercase tracking-widest transition-all relative overflow-hidden group/btn
             ${isSubscribed 
               ? "bg-truth-accentRed text-truth-bg font-bold border border-truth-accentRed" 
-              : "border border-truth-midGray text-truth-textGray hover:border-truth-textLight hover:text-truth-textLight"}
+              : "border border-truth-surface-border text-truth-on-surface-muted hover:border-truth-on-surface hover:text-truth-on-surface"}
             ${loading ? "opacity-50 cursor-not-allowed" : ""}
           `}
         >
@@ -91,23 +91,23 @@ export default function ChannelCard({ channel }: { channel: Channel }) {
         </button>
       </div>
 
-      <p className="font-mono text-xs text-truth-textGray mb-8 line-clamp-2 h-10 italic">
+      <p className="font-mono text-xs text-truth-on-surface-muted mb-8 line-clamp-2 h-10 italic">
         {channel.description || "No description broadcasted for this frequency..."}
       </p>
 
-      <div className="grid grid-cols-2 gap-4 border-t border-truth-midGray/30 pt-6">
+      <div className="grid grid-cols-2 gap-4 border-t border-truth-surface-border/50 pt-6">
          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-truth-textGray" />
-            <div className="flex flex-col">
-              <span className="font-mono text-[10px] font-black text-truth-textLight">{subCount}</span>
-              <span className="font-mono text-[8px] text-truth-textGray uppercase">Nodes</span>
+             <Users className="w-4 h-4 text-truth-on-surface-muted" />
+             <div className="flex flex-col">
+               <span className="font-mono text-[10px] font-black text-truth-on-surface">{subCount}</span>
+               <span className="font-mono text-[8px] text-truth-on-surface-muted uppercase">Nodes</span>
             </div>
          </div>
          <div className="flex items-center gap-2">
-            <Signal className="w-4 h-4 text-truth-textGray" />
-            <div className="flex flex-col">
-              <span className="font-mono text-[10px] font-black text-truth-textLight">{channel._count.posts}</span>
-              <span className="font-mono text-[8px] text-truth-textGray uppercase">Pulses</span>
+             <Signal className="w-4 h-4 text-truth-on-surface-muted" />
+             <div className="flex flex-col">
+               <span className="font-mono text-[10px] font-black text-truth-on-surface">{channel._count.posts}</span>
+               <span className="font-mono text-[8px] text-truth-on-surface-muted uppercase">Pulses</span>
             </div>
          </div>
       </div>

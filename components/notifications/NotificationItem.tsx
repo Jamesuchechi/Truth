@@ -70,7 +70,7 @@ export default function NotificationItem({ notification }: NotificationItemProps
           handleMarkRead()
         }
       }}
-      className={`relative group border-2 transition-all ${notification.read ? 'bg-truth-nearBlack/40 border-truth-midGray/20' : 'bg-truth-nearBlack border-truth-accentRed/30 shadow-[4px_4px_0px_rgba(255,51,102,0.1)] hover:border-truth-accentRed/60'}`}
+      className={`relative group border-2 transition-all ${notification.read ? 'bg-truth-surface/60 border-truth-surface-border/40' : 'bg-truth-surface border-truth-accentRed/40 shadow-[4px_4px_0px_rgba(255,51,102,0.1)] hover:border-truth-accentRed/70'}`}
     >
       {/* Swipe Indicator Background */}
       <div className="absolute inset-0 bg-truth-accentRed/10 flex items-center px-6 -z-10">
@@ -89,11 +89,11 @@ export default function NotificationItem({ notification }: NotificationItemProps
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className={`font-mono text-xs uppercase tracking-wide leading-relaxed ${notification.read ? 'text-truth-textGray' : 'text-truth-textLight'}`}>
+          <p className={`font-mono text-xs uppercase tracking-wide leading-relaxed ${notification.read ? 'text-truth-on-surface-muted' : 'text-truth-on-surface'}`}>
             {getMessage()}
           </p>
           <div className="flex items-center gap-3 mt-2">
-            <span className="font-mono text-[8px] text-truth-textGray uppercase tracking-widest">
+            <span className="font-mono text-[8px] text-truth-on-surface-muted uppercase tracking-widest">
               {formatRelativeTime(notification.createdAt)}
             </span>
             {!notification.read && (

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Shield, Eye, Lock } from "lucide-react"
+import Logo from "@/components/shared/Logo"
 
 const floatingConfessions = [
   "I've never told anyone this, but...",
@@ -67,16 +68,19 @@ export default function Hero() {
 
       <div className="relative z-30 text-center max-w-6xl mx-auto">
         {/* Logo/Title */}
-        <div className="group relative inline-block mb-8">
-          <h1 className="font-bitter text-[clamp(4rem,15vw,12rem)] font-black leading-[0.85] tracking-[-0.05em] uppercase animate-[fadeInScale_1.5s_cubic-bezier(0.16,1,0.3,1)] group-hover:animate-[glitch_0.5s_infinite]">
-            TruTH
-          </h1>
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1.5 bg-truth-accentRed animate-[expandLine_1.5s_cubic-bezier(0.16,1,0.3,1)_0.5s_both]" />
+        <div className="group relative inline-block mb-12 animate-[fadeInScale_1.5s_cubic-bezier(0.16,1,0.3,1)]">
+          <div className="flex flex-col items-center gap-6">
+            <Logo size={120} className="hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_30px_rgba(255,51,102,0.3)]" />
+            <h1 className="font-bitter text-[clamp(3.5rem,12vw,10rem)] font-black leading-none tracking-[-0.05em] uppercase group-hover:animate-[glitch_0.5s_infinite]">
+              TRUTH
+            </h1>
+          </div>
+          <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 h-1.5 bg-truth-accentRed animate-[expandLine_1.5s_cubic-bezier(0.16,1,0.3,1)_0.5s_both]" />
         </div>
 
         {/* Tagline */}
-        <p className="text-[clamp(1.5rem,4vw,2.5rem)] font-light italic text-truth-textGray mb-12 leading-[1.4] animate-[fadeInUp_1.5s_cubic-bezier(0.16,1,0.3,1)_0.3s_both]">
-          Your reality. <span className="text-truth-accentRed font-normal">Anonymously.</span><br />
+        <p className="text-[clamp(1.2rem,3.5vw,2.2rem)] font-light italic text-truth-textGray mb-12 leading-[1.4] animate-[fadeInUp_1.5s_cubic-bezier(0.16,1,0.3,1)_0.3s_both] max-w-4xl mx-auto">
+          The <span className="text-truth-accentRed font-bold not-italic">Decentralized Signal Protocol</span> for Radical Honesty.<br />
           Where masks fall and truths rise.
         </p>
 

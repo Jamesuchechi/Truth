@@ -76,51 +76,52 @@ export default function InboxClient({ initialMessages }: InboxClientProps) {
   }
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8 sm:space-y-12">
       {/* Top Controls: View Status & Search */}
-      <div className="flex flex-col md:flex-row gap-8 items-start md:items-center justify-between">
-        <div className="flex gap-4 border-2 border-truth-midGray p-1 bg-truth-nearBlack">
+      <div className="flex flex-col gap-4">
+        <div className="flex overflow-x-auto gap-0 border-2 border-truth-surface-border bg-truth-surface shrink-0 no-scrollbar">
            {statusTabs.map(tab => (
              <button
                key={tab.id}
                onClick={() => setViewStatus(tab.id as 'INBOX' | 'ARCHIVED' | 'FAVORITES')}
-               className={`flex items-center gap-2 px-4 py-2 font-mono text-[10px] uppercase tracking-widest transition-all
+               className={`flex items-center gap-2 px-3 sm:px-4 py-2 font-mono text-[9px] sm:text-[10px] uppercase tracking-widest transition-all whitespace-nowrap flex-1 justify-center
                  ${viewStatus === tab.id 
-                   ? "bg-truth-textLight text-truth-nearBlack font-black" 
-                   : "text-truth-textGray hover:text-truth-textLight"}`}
+                   ? "bg-truth-on-surface text-truth-surface font-black" 
+                   : "text-truth-on-surface-muted hover:text-truth-on-surface"}`}
              >
-               <tab.icon className="w-3.5 h-3.5" />
-               {tab.label}
+               <tab.icon className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+               <span className="hidden xs:inline">{tab.label}</span>
+               <span className="xs:hidden">{tab.id}</span>
              </button>
            ))}
         </div>
 
-        <div className="flex items-center gap-4 w-full md:w-auto">
-          <div className="relative group flex-1 md:w-80">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-truth-textGray group-focus-within:text-truth-accentRed transition-colors" />
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="relative group flex-1 min-w-0">
+            <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-truth-on-surface-muted group-focus-within:text-truth-accentRed transition-colors" />
             <input 
               type="text" 
-              placeholder="Search_Encrypted_Transmissions..."
+              placeholder="Search transmissions..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-truth-nearBlack border-2 border-truth-midGray p-3 pl-12 font-mono text-[10px] uppercase text-truth-textLight focus:outline-none focus:border-truth-accentRed transition-all placeholder:text-truth-textGray/30"
+              className="w-full bg-truth-surface border-2 border-truth-surface-border p-3 pl-9 sm:pl-12 font-mono text-[10px] uppercase text-truth-on-surface focus:outline-none focus:border-truth-accentRed transition-all placeholder:text-truth-on-surface-muted/40"
             />
           </div>
 
           <button 
             onClick={() => setIsAnalyticsOpen(true)}
-            className="p-3 border-2 border-truth-midGray text-truth-textGray hover:border-truth-accentBlue hover:text-truth-accentBlue transition-all bg-truth-nearBlack"
+            className="p-2.5 sm:p-3 border-2 border-truth-surface-border text-truth-on-surface-muted hover:border-truth-accentBlue hover:text-truth-accentBlue transition-all bg-truth-surface shrink-0"
             title="Signal Intelligence"
           >
-            <BarChart2 className="w-5 h-5" />
+            <BarChart2 className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
           
           <button 
             onClick={() => setIsExportOpen(true)}
-            className="p-3 border-2 border-truth-midGray text-truth-textGray hover:border-truth-accentRed hover:text-truth-textLight transition-all bg-truth-nearBlack"
+            className="p-2.5 sm:p-3 border-2 border-truth-surface-border text-truth-on-surface-muted hover:border-truth-accentRed hover:text-truth-on-surface transition-all bg-truth-surface shrink-0"
             title="Export Protocol"
           >
-            <Download className="w-5 h-5" />
+            <Download className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
       </div>
@@ -129,11 +130,11 @@ export default function InboxClient({ initialMessages }: InboxClientProps) {
       <AnalyticsView isOpen={isAnalyticsOpen} onClose={() => setIsAnalyticsOpen(false)} />
 
       {/* Filtering Header */}
-      <div className="space-y-6">
-        <div className="flex flex-wrap items-center gap-8">
-           <div className="flex items-center gap-3">
-             <Filter className="w-4 h-4 text-truth-accentRed" />
-             <span className="font-mono text-[10px] font-black uppercase tracking-widest text-truth-textLight">Protocol_Filter:</span>
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-wrap items-start gap-3 sm:gap-8">
+           <div className="flex items-center gap-2 shrink-0 mt-0.5">
+             <Filter className="w-3.5 h-3.5 text-truth-accentRed" />
+             <span className="font-mono text-[10px] font-black uppercase tracking-widest text-truth-on-surface">Filter:</span>
            </div>
            
            <div className="flex flex-wrap gap-2">
@@ -141,10 +142,10 @@ export default function InboxClient({ initialMessages }: InboxClientProps) {
                <button
                  key={tab.id}
                  onClick={() => setActiveType(tab.id as MessageType | "ALL")}
-                 className={`flex items-center gap-2 px-3 py-1.5 border-2 font-mono text-[9px] uppercase tracking-wider transition-all
+                 className={`flex items-center gap-1.5 px-2.5 py-1.5 border-2 font-mono text-[9px] uppercase tracking-wider transition-all whitespace-nowrap
                    ${activeType === tab.id 
-                     ? "border-truth-accentRed text-truth-accentRed bg-truth-accentRed/5 shadow-[4px_4px_0px_rgba(255,51,102,0.2)]" 
-                     : "border-truth-midGray text-truth-textGray hover:border-truth-textLight hover:text-truth-textLight"}`}
+                     ? "border-truth-accentRed text-truth-accentRed bg-truth-accentRed/10 shadow-[4px_4px_0px_rgba(255,51,102,0.2)]" 
+                     : "border-truth-surface-border text-truth-on-surface-muted hover:border-truth-on-surface hover:text-truth-on-surface"}`}
                >
                  <tab.icon className="w-3 h-3" />
                  {tab.label}
@@ -153,10 +154,10 @@ export default function InboxClient({ initialMessages }: InboxClientProps) {
            </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-8">
-           <div className="flex items-center gap-3">
-             <div className="w-4 h-4" />
-             <span className="font-mono text-[10px] font-black uppercase tracking-widest text-truth-textLight">Tone_Select:</span>
+        <div className="flex flex-wrap items-start gap-3 sm:gap-8">
+           <div className="flex items-center gap-2 shrink-0 mt-1">
+             <div className="w-3.5 h-3.5" />
+             <span className="font-mono text-[10px] font-black uppercase tracking-widest text-truth-on-surface">Tone:</span>
            </div>
            
            <div className="flex flex-wrap gap-2">
@@ -164,12 +165,12 @@ export default function InboxClient({ initialMessages }: InboxClientProps) {
                <button
                  key={tone.id}
                  onClick={() => setActiveTone(tone.id as ToneType | "ALL")}
-                 className={`flex items-center gap-2 px-3 py-1 border-b-2 transition-all
+                 className={`flex items-center gap-1.5 px-2.5 py-1 border-b-2 transition-all whitespace-nowrap
                    ${activeTone === tone.id 
-                     ? "border-truth-textLight text-truth-textLight" 
-                     : "border-transparent text-truth-textGray hover:text-truth-textLight"}`}
+                     ? "border-truth-on-surface text-truth-on-surface" 
+                     : "border-transparent text-truth-on-surface-muted hover:text-truth-on-surface"}`}
                >
-                 <div className={`w-1.5 h-1.5 rounded-full ${tone.color}`} />
+                 <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${tone.color}`} />
                  <span className="font-mono text-[8px] uppercase tracking-widest">{tone.label}</span>
                </button>
              ))}
@@ -256,7 +257,7 @@ export default function InboxClient({ initialMessages }: InboxClientProps) {
             />
           ))
         ) : (
-          <div className="py-24 text-center border-4 border-dashed border-truth-midGray bg-truth-darkGray/30">
+          <div className="py-16 sm:py-24 text-center border-4 border-dashed border-truth-surface-border bg-truth-surface">
             <div className="mb-6 flex justify-center">
               <div className="w-20 h-20 bg-truth-nearBlack border-2 border-truth-midGray flex items-center justify-center rotate-45">
                 <InboxIcon className="w-10 h-10 text-truth-textGray/40 -rotate-45" />

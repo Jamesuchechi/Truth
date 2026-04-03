@@ -19,6 +19,14 @@
     --brand-accent-blue: #6E48AA;
     --brand-accent-green: #10B981;
     --brand-accent-yellow: #F59E0B;
+
+    /* Semantic Surface Tokens — Light Mode (warm bisque palette) */
+    --surface-card: #FDF7F0;
+    --surface-card-nested: #F5E8D8;
+    --surface-card-border: #D4B896;
+    --surface-input: #FFFFFF;
+    --on-surface: #1A1A1A;
+    --on-surface-muted: #7A6255;
 }
 
 .dark {
@@ -27,6 +35,14 @@
     --card: #0A0A0A;
     --border: #1F1F1F;
     --muted: #888888;
+
+    /* Semantic Surface Tokens — Dark Mode */
+    --surface-card: #141414;
+    --surface-card-nested: #1F1F1F;
+    --surface-card-border: #2A2A2A;
+    --surface-input: #0A0A0A;
+    --on-surface: #E0E0E0;
+    --on-surface-muted: #999999;
 }
 
 [data-theme='ultra-contrast'] {
@@ -59,6 +75,14 @@
   --color-truth-accentPurple: var(--brand-accent-purple);
   --color-truth-accentBlue: var(--brand-accent-blue);
   --color-truth-accentYellow: var(--brand-accent-yellow);
+
+  /* Semantic adaptive tokens */
+  --color-truth-surface: var(--surface-card);
+  --color-truth-surface-nested: var(--surface-card-nested);
+  --color-truth-surface-border: var(--surface-card-border);
+  --color-truth-surface-input: var(--surface-input);
+  --color-truth-on-surface: var(--on-surface);
+  --color-truth-on-surface-muted: var(--on-surface-muted);
 }
 
 body {
@@ -172,3 +196,7 @@ body::before {
 .font-bitter { font-family: var(--font-bitter), serif; }
 .font-crimson { font-family: var(--font-crimson-pro), serif; }
 .font-mono { font-family: var(--font-jetbrains-mono), monospace; }
+
+/* Hide scrollbar but allow scrolling */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

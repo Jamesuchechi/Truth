@@ -1,7 +1,8 @@
 "use client"
 
 import type { ReputationTier } from "@prisma/client"
-import { Shield, Calendar, Users, Hash, Zap, CheckCircle, Activity } from "lucide-react"
+import { Shield, Calendar, Users, Hash, CheckCircle, Activity } from "lucide-react"
+import Logo from "@/components/shared/Logo"
 import Image from "next/image"
 import { endorseUser } from "@/lib/actions/reputation"
 import { useSession } from "next-auth/react"
@@ -82,7 +83,7 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
                 </div>
             )}
             <div className={`px-3 py-1 border font-mono text-[10px] uppercase tracking-widest flex items-center gap-2 ${getTierColor(user.reputationTier)}`}>
-                <Zap className="w-3 h-3" />
+                <Logo size={12} />
                 Tier: {user.reputationTier}
             </div>
             <div className="px-3 py-1 bg-truth-bg/80 border border-truth-midGray text-truth-textGray font-mono text-[10px] uppercase tracking-widest flex items-center gap-2">
@@ -106,7 +107,7 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-truth-darkGray">
-                <Zap className="w-16 h-16 text-truth-midGray group-hover:text-truth-accentRed transition-colors" />
+                <Logo size={64} className="opacity-20 group-hover:opacity-40 transition-opacity" />
               </div>
             )}
             {/* Glitch Overlay */}
@@ -150,7 +151,7 @@ export default function ProfileHeader({ user }: ProfileHeaderProps) {
               <span className="text-truth-textLight font-bold">{user._count.following}</span> Following
             </div>
             <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-truth-accentRed" />
+              <Logo size={14} className="text-truth-accentRed" />
               <span className="text-truth-textLight font-bold">{user._count.posts}</span> Transmissions
             </div>
             <div className="flex items-center gap-2">

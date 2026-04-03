@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { Search, Home, Bell, User, Settings, Hash, MessageSquare, Terminal, X, Zap } from "lucide-react"
+import { Search, Home, Bell, User, Settings, Hash, MessageSquare, Terminal, X } from "lucide-react"
+import Logo from "./Logo"
 
 const ACTIONS = [
   { id: "feed", icon: Home, label: "Switch to Feed", shortcut: "H", path: "/feed" },
@@ -12,7 +13,7 @@ const ACTIONS = [
   { id: "channels", icon: Hash, label: "Frequency Matrix", shortcut: "CH", path: "/channels" },
   { id: "inbox", icon: MessageSquare, label: "Secure Comms", shortcut: "I", path: "/inbox" },
   { id: "settings", icon: Settings, label: "Protocol Config", shortcut: "S", path: "/settings" },
-  { id: "compose", icon: Zap, label: "Quick Post", shortcut: "C", action: "compose" },
+  { id: "compose", icon: () => <Logo size={16} />, label: "Quick Post", shortcut: "C", action: "compose" },
 ]
 
 export default function CommandPalette() {

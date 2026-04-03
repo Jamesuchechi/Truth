@@ -1,6 +1,7 @@
 "use client"
 
-import { TrendingUp, Zap, Link as LinkIcon, MessageSquare, Heart, Ghost, UserPlus } from "lucide-react"
+import { TrendingUp, Link as LinkIcon, MessageSquare, Heart, Ghost, UserPlus } from "lucide-react"
+import Logo from "./Logo"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { getTrendingPosts } from "@/lib/actions/post"
@@ -139,7 +140,7 @@ export default function RightSidebar() {
         {/* Protocol Directives (Related Links) */}
         <section>
           <div className="flex items-center gap-2 mb-4">
-            <Zap className="w-4 h-4 text-truth-accentBlue" />
+            <Logo size={16} className="text-truth-accentBlue" />
             <h2 className="font-mono text-xs font-black uppercase tracking-widest text-foreground">
               PROTOCOL_DIRECTIVES
             </h2>

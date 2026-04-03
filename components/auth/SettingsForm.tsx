@@ -119,78 +119,78 @@ export default function SettingsForm() {
         </div>
       )}
 
-      <div className="p-8 bg-truth-nearBlack border-2 border-truth-midGray shadow-[10px_10px_0px_rgba(255,51,102,0.1)]">
-        <h3 className="font-bitter text-2xl font-black text-truth-textLight uppercase mb-6 flex items-center gap-3">
+      <div className="p-8 bg-truth-surface border-2 border-truth-surface-border shadow-[10px_10px_0px_rgba(255,51,102,0.1)]">
+        <h3 className="font-bitter text-2xl font-black text-truth-on-surface uppercase mb-6 flex items-center gap-3">
           Profile Configuration
         </h3>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-textGray">Username</label>
+              <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-on-surface-muted">Username</label>
               <div className="relative">
                 <input
                   value={formData.username}
                   onChange={(e) => setFormData({...formData, username: e.target.value})}
-                  className="w-full bg-truth-bg border-2 border-truth-midGray p-4 pl-4 text-truth-textLight font-mono focus:border-truth-accentRed outline-none"
+                  className="w-full bg-truth-surface-input border-2 border-truth-surface-border p-4 pl-4 text-truth-on-surface font-mono focus:border-truth-accentRed outline-none"
                 />
               </div>
             </div>
             
             <div className="space-y-2">
-              <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-textGray">Email Address</label>
+              <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-on-surface-muted">Email Address</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-truth-textGray" />
                 <input
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  className="w-full bg-truth-bg border-2 border-truth-midGray p-4 pl-12 text-truth-textLight font-mono focus:border-truth-accentRed outline-none"
+                  className="w-full bg-truth-surface-input border-2 border-truth-surface-border p-4 pl-12 text-truth-on-surface font-mono focus:border-truth-accentRed outline-none"
                 />
               </div>
             </div>
           </div>
 
           {!session?.user?.isAnonymous && (
-            <div className="pt-6 border-t border-truth-midGray space-y-6">
-              <h4 className="font-mono text-xs font-bold text-truth-textGray uppercase mb-4">Profile Metadata</h4>
+            <div className="pt-6 border-t border-truth-surface-border space-y-6">
+              <h4 className="font-mono text-xs font-bold text-truth-on-surface-muted uppercase mb-4">Profile Metadata</h4>
               
               <div className="space-y-2">
-                <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-textGray">Bio / Designation</label>
+                <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-on-surface-muted">Bio / Designation</label>
                 <textarea
                   value={formData.bio}
                   onChange={(e) => setFormData({...formData, bio: e.target.value})}
                   rows={3}
                   placeholder="Transmit your purpose..."
-                  className="w-full bg-truth-bg border-2 border-truth-midGray p-4 text-truth-textLight font-mono focus:border-truth-accentRed outline-none resize-none"
+                  className="w-full bg-truth-surface-input border-2 border-truth-surface-border p-4 text-truth-on-surface font-mono focus:border-truth-accentRed outline-none resize-none"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-textGray">Display Image URL</label>
+                <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-on-surface-muted">Display Image URL</label>
                 <div className="relative">
-                   <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-truth-textGray" />
+                   <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-truth-on-surface-muted" />
                    <input
                     value={formData.image}
                     onChange={(e) => setFormData({...formData, image: e.target.value})}
                     placeholder="https://reality.app/your-image.jpg"
-                    className="w-full bg-truth-bg border-2 border-truth-midGray p-4 pl-12 text-truth-textLight font-mono focus:border-truth-accentRed outline-none"
+                    className="w-full bg-truth-surface-input border-2 border-truth-surface-border p-4 pl-12 text-truth-on-surface font-mono focus:border-truth-accentRed outline-none"
                   />
                 </div>
               </div>
 
               {/* NEW: Shadow Identity Protocol */}
-              <div className="pt-8 border-t border-truth-midGray space-y-6">
+              <div className="pt-8 border-t border-truth-surface-border space-y-6">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-truth-accentPurple/20 flex items-center justify-center">
                     <Fingerprint className="w-4 h-4 text-truth-accentPurple" />
                   </div>
-                  <h4 className="font-bitter text-xl font-black text-truth-textLight uppercase tracking-tight">Shadow Identity Protocol</h4>
+                  <h4 className="font-bitter text-xl font-black text-truth-on-surface uppercase tracking-tight">Shadow Identity Protocol</h4>
                 </div>
 
                 <div className="space-y-4">
                   <div className="flex items-end gap-4">
                     <div className="flex-1 space-y-2">
-                      <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-textGray">Shadow Designation</label>
+                      <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-on-surface-muted">Shadow Designation</label>
                       <div className="relative">
                         <input
                           value={formData.shadowName}
@@ -209,7 +209,7 @@ export default function SettingsForm() {
                               setShadowAvailability({ checked: false, available: false, loading: false })
                             }
                           }}
-                          className={`w-full bg-truth-bg border-2 p-4 text-truth-textLight font-mono focus:border-truth-accentPurple outline-none ${shadowAvailability.checked ? (shadowAvailability.available ? 'border-truth-accentGreen' : 'border-truth-accentRed') : 'border-truth-midGray'}`}
+                          className={`w-full bg-truth-surface-input border-2 p-4 text-truth-on-surface font-mono focus:border-truth-accentPurple outline-none ${shadowAvailability.checked ? (shadowAvailability.available ? 'border-truth-accentGreen' : 'border-truth-accentRed') : 'border-truth-surface-border'}`}
                           placeholder="Assign anonymous ID..."
                         />
                       </div>
@@ -221,7 +221,7 @@ export default function SettingsForm() {
                         setFormData({...formData, shadowName: newName})
                         setShadowAvailability({ checked: true, available: true, loading: false })
                       }}
-                      className="p-4 bg-truth-bg border-2 border-truth-midGray text-truth-textGray hover:text-truth-accentPurple hover:border-truth-accentPurple transition-all"
+                      className="p-4 bg-truth-surface-input border-2 border-truth-surface-border text-truth-on-surface-muted hover:text-truth-accentPurple hover:border-truth-accentPurple transition-all"
                       title="Auto-Generate Shadow Designation"
                     >
                       <RefreshCw className="w-5 h-5" />
@@ -238,46 +238,46 @@ export default function SettingsForm() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-textGray">Anonymous Designation / Bio</label>
+                  <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-on-surface-muted">Anonymous Designation / Bio</label>
                   <textarea
                     value={formData.shadowBio}
                     onChange={(e) => setFormData({...formData, shadowBio: e.target.value})}
                     rows={2}
                     placeholder="Describe your shadow presence..."
-                    className="w-full bg-truth-bg border-2 border-truth-midGray p-4 text-truth-textLight font-mono focus:border-truth-accentPurple outline-none resize-none"
+                    className="w-full bg-truth-surface-input border-2 border-truth-surface-border p-4 text-truth-on-surface font-mono focus:border-truth-accentPurple outline-none resize-none"
                   />
-                  <p className="font-mono text-[8px] text-truth-textGray uppercase">This will only be displayed when manifesting in Shadow Mode.</p>
+                  <p className="font-mono text-[8px] text-truth-on-surface-muted uppercase">This will only be displayed when manifesting in Shadow Mode.</p>
                 </div>
               </div>
 
               {/* NEW: Privacy & Safety Section */}
-              <div className="pt-8 border-t border-truth-midGray space-y-8">
+              <div className="pt-8 border-t border-truth-surface-border space-y-8">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-truth-accentRed/20 flex items-center justify-center">
                     <Shield className="w-4 h-4 text-truth-accentRed" />
                   </div>
-                  <h4 className="font-bitter text-xl font-black text-truth-textLight uppercase tracking-tight">Privacy & Safety Configuration</h4>
+                  <h4 className="font-bitter text-xl font-black text-truth-on-surface uppercase tracking-tight">Privacy & Safety Configuration</h4>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className={`p-4 border-2 transition-all cursor-pointer flex items-center justify-between group ${formData.inboxEnabled ? 'border-truth-accentGreen bg-truth-accentGreen/5' : 'border-truth-midGray bg-truth-darkGray/30'}`}
+                  <div className={`p-4 border-2 transition-all cursor-pointer flex items-center justify-between group ${formData.inboxEnabled ? 'border-truth-accentGreen bg-truth-accentGreen/5' : 'border-truth-surface-border bg-truth-surface-nested'}`}
                        onClick={() => setFormData({...formData, inboxEnabled: !formData.inboxEnabled})}>
                     <div className="flex items-center gap-3">
-                      <ToggleLeft className={`w-5 h-5 transition-transform ${formData.inboxEnabled ? 'text-truth-accentGreen' : 'text-truth-textGray scale-x-[-1]'}`} />
+                      <ToggleLeft className={`w-5 h-5 transition-transform ${formData.inboxEnabled ? 'text-truth-accentGreen' : 'text-truth-on-surface-muted scale-x-[-1]'}`} />
                       <div>
-                        <p className="font-mono text-[10px] font-black uppercase text-truth-textLight">Inbox Status</p>
-                        <p className="font-mono text-[8px] text-truth-textGray uppercase">{formData.inboxEnabled ? 'Online / Receiving' : 'Offline / Restricted'}</p>
+                        <p className="font-mono text-[10px] font-black uppercase text-truth-on-surface">Inbox Status</p>
+                        <p className="font-mono text-[8px] text-truth-on-surface-muted uppercase">{formData.inboxEnabled ? 'Online / Receiving' : 'Offline / Restricted'}</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className={`p-4 border-2 transition-all cursor-pointer flex items-center justify-between group ${formData.questionsOnlyMode ? 'border-truth-accentBlue bg-truth-accentBlue/5' : 'border-truth-midGray bg-truth-darkGray/30'}`}
+                  <div className={`p-4 border-2 transition-all cursor-pointer flex items-center justify-between group ${formData.questionsOnlyMode ? 'border-truth-accentBlue bg-truth-accentBlue/5' : 'border-truth-surface-border bg-truth-surface-nested'}`}
                        onClick={() => setFormData({...formData, questionsOnlyMode: !formData.questionsOnlyMode})}>
                     <div className="flex items-center gap-3">
-                      <MessageSquareCode className={`w-5 h-5 ${formData.questionsOnlyMode ? 'text-truth-accentBlue' : 'text-truth-textGray'}`} />
+                      <MessageSquareCode className={`w-5 h-5 ${formData.questionsOnlyMode ? 'text-truth-accentBlue' : 'text-truth-on-surface-muted'}`} />
                       <div>
-                        <p className="font-mono text-[10px] font-black uppercase text-truth-textLight">Questions Only</p>
-                        <p className="font-mono text-[8px] text-truth-textGray uppercase">{formData.questionsOnlyMode ? 'Enabled' : 'All Types Allowed'}</p>
+                        <p className="font-mono text-[10px] font-black uppercase text-truth-on-surface">Questions Only</p>
+                        <p className="font-mono text-[8px] text-truth-on-surface-muted uppercase">{formData.questionsOnlyMode ? 'Enabled' : 'All Types Allowed'}</p>
                       </div>
                     </div>
                   </div>
@@ -285,8 +285,8 @@ export default function SettingsForm() {
 
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <Filter className="w-3 h-3 text-truth-textGray" />
-                    <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-textGray">Signal Tone Filtering (Allowed Transmissions)</label>
+                    <Filter className="w-3 h-3 text-truth-on-surface-muted" />
+                    <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-on-surface-muted">Signal Tone Filtering (Allowed Transmissions)</label>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {Object.values(ToneType).map((tone) => (
@@ -296,8 +296,8 @@ export default function SettingsForm() {
                         onClick={() => toggleTone(tone)}
                         className={`px-3 py-2 border font-mono text-[9px] uppercase transition-all duration-200
                           ${formData.allowedTones.includes(tone)
-                            ? "bg-truth-textLight text-truth-bg border-truth-textLight font-black"
-                            : "border-truth-midGray text-truth-textGray hover:border-truth-textLight hover:text-truth-textLight"}`}
+                            ? "bg-truth-on-surface text-truth-surface border-truth-on-surface font-black"
+                            : "border-truth-surface-border text-truth-on-surface-muted hover:border-truth-on-surface hover:text-truth-on-surface"}`}
                       >
                         {tone}
                       </button>
@@ -311,21 +311,21 @@ export default function SettingsForm() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Ban className="w-3 h-3 text-truth-textGray" />
-                      <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-textGray">Blocked Signal Patterns</label>
+                      <Ban className="w-3 h-3 text-truth-on-surface-muted" />
+                      <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-on-surface-muted">Blocked Signal Patterns</label>
                     </div>
                     <textarea
                       value={formData.blockedPhrases}
                       onChange={(e) => setFormData({...formData, blockedPhrases: e.target.value})}
                       placeholder="Enter phrases separated by commas..."
-                      className="w-full bg-truth-bg border-2 border-truth-midGray p-4 text-truth-textLight font-mono text-[10px] focus:border-truth-accentRed outline-none resize-none h-24"
+                      className="w-full bg-truth-surface-input border-2 border-truth-surface-border p-4 text-truth-on-surface font-mono text-[10px] focus:border-truth-accentRed outline-none resize-none h-24"
                     />
                   </div>
 
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Timer className="w-3 h-3 text-truth-textGray" />
-                      <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-textGray">Transmission Cooldown (Minutes)</label>
+                      <Timer className="w-3 h-3 text-truth-on-surface-muted" />
+                      <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-on-surface-muted">Transmission Cooldown (Minutes)</label>
                     </div>
                     <div className="relative">
                       <input
@@ -334,24 +334,24 @@ export default function SettingsForm() {
                         max="1440"
                         value={formData.messageCooldown}
                         onChange={(e) => setFormData({...formData, messageCooldown: parseInt(e.target.value) || 0})}
-                        className="w-full bg-truth-bg border-2 border-truth-midGray p-4 text-truth-textLight font-mono focus:border-truth-accentRed outline-none"
+                        className="w-full bg-truth-surface-input border-2 border-truth-surface-border p-4 text-truth-on-surface font-mono focus:border-truth-accentRed outline-none"
                       />
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 font-mono text-[10px] text-truth-textGray uppercase">MIN</div>
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 font-mono text-[10px] text-truth-on-surface-muted uppercase">MIN</div>
                     </div>
-                    <p className="font-mono text-[8px] text-truth-textGray uppercase leading-relaxed">Required interval between successive signals from a single source fingerprint.</p>
+                    <p className="font-mono text-[8px] text-truth-on-surface-muted uppercase leading-relaxed">Required interval between successive signals from a single source fingerprint.</p>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-8 border-t border-truth-midGray">
-                <h4 className="font-mono text-xs font-bold text-truth-textGray uppercase mb-4">Account Recovery Protocol</h4>
+              <div className="pt-8 border-t border-truth-surface-border">
+                <h4 className="font-mono text-xs font-bold text-truth-on-surface-muted uppercase mb-4">Account Recovery Protocol</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-textGray">Security Question</label>
+                    <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-on-surface-muted">Security Question</label>
                     <select
                       value={formData.securityQuestion}
                       onChange={(e) => setFormData({...formData, securityQuestion: e.target.value})}
-                      className="w-full bg-truth-nearBlack border-2 border-truth-midGray p-4 text-truth-textLight font-mono focus:border-truth-accentRed outline-none"
+                      className="w-full bg-truth-surface-input border-2 border-truth-surface-border p-4 text-truth-on-surface font-mono focus:border-truth-accentRed outline-none"
                     >
                       <option value="">Select Protocol</option>
                       <option value="maiden_name">Originator&apos;s Maiden Name</option>
@@ -361,23 +361,23 @@ export default function SettingsForm() {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-textGray">Encrypted Answer</label>
+                    <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-on-surface-muted">Encrypted Answer</label>
                     <input
                       type="password"
                       value={formData.securityAnswer}
                       onChange={(e) => setFormData({...formData, securityAnswer: e.target.value})}
                       placeholder="Assign recovery key"
-                      className="w-full bg-truth-bg border-2 border-truth-midGray p-4 text-truth-textLight font-mono focus:border-truth-accentRed outline-none"
+                      className="w-full bg-truth-surface-input border-2 border-truth-surface-border p-4 text-truth-on-surface font-mono focus:border-truth-accentRed outline-none"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="pt-6 border-t border-truth-midGray">
-                <h4 className="font-mono text-xs font-bold text-truth-textGray uppercase mb-4">Security Protocol Update</h4>
+              <div className="pt-6 border-t border-truth-surface-border">
+                <h4 className="font-mono text-xs font-bold text-truth-on-surface-muted uppercase mb-4">Security Protocol Update</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-textGray">Current Key</label>
+                    <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-on-surface-muted">Current Key</label>
                     <div className="relative">
                       <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-truth-textGray" />
                       <input
@@ -385,12 +385,12 @@ export default function SettingsForm() {
                         value={formData.password}
                         onChange={(e) => setFormData({...formData, password: e.target.value})}
                         placeholder="Confirm current key"
-                        className="w-full bg-truth-bg border-2 border-truth-midGray p-4 pl-12 text-truth-textLight font-mono focus:border-truth-accentRed outline-none"
+                        className="w-full bg-truth-surface-input border-2 border-truth-surface-border p-4 pl-12 text-truth-on-surface font-mono focus:border-truth-accentRed outline-none"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-textGray">New Key</label>
+                    <label className="block font-mono text-[10px] uppercase tracking-widest text-truth-on-surface-muted">New Key</label>
                     <div className="relative">
                       <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-truth-textGray" />
                       <input
@@ -398,7 +398,7 @@ export default function SettingsForm() {
                         value={formData.newPassword}
                         onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
                         placeholder="Assign new key"
-                        className="w-full bg-truth-bg border-2 border-truth-midGray p-4 pl-12 text-truth-textLight font-mono focus:border-truth-accentRed outline-none"
+                        className="w-full bg-truth-surface-input border-2 border-truth-surface-border p-4 pl-12 text-truth-on-surface font-mono focus:border-truth-accentRed outline-none"
                       />
                     </div>
                   </div>
@@ -431,7 +431,7 @@ export default function SettingsForm() {
 
       <TwoFactorSetup />
 
-      <div className="p-8 bg-truth-accentRed/5 border-2 border-truth-accentRed/20">
+      <div className="p-8 bg-truth-accentRed/10 border-2 border-truth-accentRed/40">
         <h3 className="font-bitter text-2xl font-black text-truth-accentRed uppercase mb-2 flex items-center gap-3">
           <Trash2 className="w-6 h-6" /> Danger Zone
         </h3>

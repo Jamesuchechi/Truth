@@ -7,7 +7,6 @@ import {
   MessageCircle, 
   MoreHorizontal, 
   Ghost, 
-  Zap,
   ArrowUpRight,
   Clock,
   Layers,
@@ -19,6 +18,7 @@ import {
   ShieldCheck,
   AlertTriangle
 } from "lucide-react"
+import Logo from "@/components/shared/Logo"
 import { ReportModal } from "@/components/moderation/ReportModal"
 import { AppealModal } from "@/components/moderation/AppealModal"
 import { motion, AnimatePresence } from "framer-motion"
@@ -231,7 +231,7 @@ export function PostCard({
                 post.author.reputationTier === 'SPECTRE' ? 'text-truth-accentPurple border-truth-accentPurple bg-truth-accentPurple/10' :
                 'text-truth-textGray border-truth-midGray bg-truth-darkGray/30'
               }`}>
-                <Zap className="w-2 h-2" />
+                <Logo size={8} />
                 {post.author.reputationTier}
               </span>
 
@@ -269,7 +269,7 @@ export function PostCard({
                       onClick={() => { setShowAnalytics(true); setIsMenuOpen(false); }}
                       className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-mono text-truth-textGray hover:text-truth-accentBlue hover:bg-truth-darkGray transition-all uppercase tracking-widest"
                     >
-                      <Zap className="w-4 h-4" />
+                      <Logo size={16} />
                       VIEW_PULSE_ANALYTICS
                     </button>
                     {canEdit && (
@@ -428,7 +428,7 @@ export function PostCard({
         {post.visibilityType === 'LIMITED' && (
           <div className="p-3 bg-truth-accentBlue/5 border-l-4 border-truth-accentBlue flex flex-col gap-1 flex-1 relative overflow-hidden group/scarcity">
             <div className="flex items-center gap-3">
-              <Zap className="w-4 h-4 text-truth-accentBlue animate-pulse" />
+              <Logo size={16} className="animate-pulse" />
               <span className="font-mono text-[10px] text-truth-accentBlue uppercase tracking-widest font-black">
                 LIMITED_BY_OBSERVATION: {post.viewsLimit}_TOTAL
               </span>
@@ -691,7 +691,7 @@ export function PostCard({
 
       {isPending && (
         <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] z-20 flex items-center justify-center">
-           <Zap className="w-8 h-8 text-truth-accentBlue animate-pulse" />
+           <Logo size={32} className="animate-pulse" />
         </div>
       )}
 

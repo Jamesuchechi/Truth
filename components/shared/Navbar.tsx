@@ -2,22 +2,21 @@
 import Link from "next/link"
 import { auth } from "@/auth"
 import { logoutUser } from "@/lib/actions/user"
-import { Menu, User as UserIcon, LogOut, Terminal } from "lucide-react"
+import { Menu, User as UserIcon, LogOut } from "lucide-react"
+import Logo from "./Logo"
 
 export default async function Navbar() {
   const session = await auth()
   const user = session?.user
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-10000 border-b border-truth-midGray/50 bg-truth-bg/80 backdrop-blur-md">
+    <nav className="fixed top-0 left-0 right-0 z-100 border-b border-truth-midGray/50 bg-truth-bg/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="group flex items-center gap-2">
-          <div className="w-8 h-8 bg-truth-accentRed flex items-center justify-center transform group-hover:rotate-90 transition-transform duration-500">
-             <Terminal className="w-5 h-5 text-truth-bg" />
-          </div>
+          <Logo size={32} className="group-hover:rotate-12 transition-transform duration-500" />
           <span className="font-bitter text-2xl font-black tracking-tight uppercase group-hover:text-truth-accentRed transition-colors">
-            TruTH
+            TRUTH
           </span>
         </Link>
 

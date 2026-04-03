@@ -9,8 +9,6 @@ import {
   Settings, 
   LogOut, 
   Hash, 
-  Shield, 
-  Zap, 
   User,
   ChevronRight,
   ChevronLeft,
@@ -30,6 +28,7 @@ import { getFollowers, getFollowing } from "@/lib/actions/follow"
 import { useTransition, useState, useEffect } from "react"
 import { useSidebar } from "./SidebarProvider"
 import NotificationBadge from "../notifications/NotificationBadge"
+import Logo from "./Logo"
 
 const navItems = [
   { href: "/feed", icon: Home, label: "Feed", description: "The Pulse" },
@@ -117,8 +116,8 @@ export default function Sidebar({ user }: { user: {
            animate={{ x: 0, opacity: 1 }}
            className="relative z-10 flex items-center gap-3"
          >
-           <div className={`shrink-0 w-10 h-10 bg-truth-accentRed flex items-center justify-center rounded-sm transition-transform duration-300 ${isCollapsed ? "scale-90" : ""}`}>
-             <Shield className="text-black w-6 h-6" />
+           <div className={`shrink-0 transition-transform duration-300 ${isCollapsed ? "scale-90" : ""}`}>
+             <Logo size={isCollapsed ? 32 : 40} />
            </div>
            {!isCollapsed && (
              <motion.div
@@ -130,7 +129,7 @@ export default function Sidebar({ user }: { user: {
                  TRUTH<span className="text-truth-accentRed">OS</span>
                </h1>
                <p className="font-mono text-[8px] text-muted uppercase tracking-[0.2em] mt-1">
-                 Identity Protocol v4.0.2
+                 SIGNAL_PROTOCOL v1.0.0
                </p>
              </motion.div>
            )}
@@ -302,7 +301,7 @@ export default function Sidebar({ user }: { user: {
                {/* Stats Section */}
                <div>
                   <p className="font-mono text-[9px] text-muted uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <Zap className="w-3 h-3 text-truth-accentRed" /> Network Status
+                    <Logo size={12} className="text-truth-accentRed" /> Network Status
                   </p>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-[8px] font-mono uppercase">

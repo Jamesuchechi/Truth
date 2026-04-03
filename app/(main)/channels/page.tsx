@@ -8,7 +8,7 @@ export default async function ChannelsPage() {
   return (
     <div className="max-w-6xl mx-auto py-12 px-6 space-y-12 animate-fadeIn">
       {/* Header Section */}
-      <section className="relative overflow-hidden bg-truth-nearBlack border-2 border-truth-midGray p-12">
+      <section className="relative overflow-hidden bg-truth-surface border-2 border-truth-surface-border p-8 sm:p-12">
         <div className="relative z-10 space-y-4">
            <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.4em] text-truth-accentRed">
              <div className="w-2 h-2 bg-truth-accentRed shadow-[0_0_8px_rgba(255,51,102,0.6)]" />
@@ -32,14 +32,14 @@ export default async function ChannelsPage() {
       {/* Filter & Search Hub */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
          <div className="md:col-span-3 relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-truth-textGray group-focus-within:text-truth-accentRed transition-colors" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-truth-on-surface-muted group-focus-within:text-truth-accentRed transition-colors" />
             <input 
               type="text" 
               placeholder="SEARCH_SIGNAL_ID // FILTER_CHANNELS..."
-              className="w-full bg-truth-nearBlack border-2 border-truth-midGray/50 py-4 pl-12 pr-4 font-mono text-[10px] uppercase tracking-widest text-truth-textLight placeholder:text-truth-textGray/20 focus:border-truth-accentRed outline-none transition-all"
+              className="w-full bg-truth-surface border-2 border-truth-surface-border py-4 pl-12 pr-4 font-mono text-[10px] uppercase tracking-widest text-truth-on-surface placeholder:text-truth-on-surface-muted/40 focus:border-truth-accentRed outline-none transition-all"
             />
          </div>
-         <button className="bg-truth-nearBlack border-2 border-truth-midGray/50 py-4 px-6 flex items-center justify-center gap-3 font-mono text-[10px] uppercase tracking-widest text-truth-textGray hover:text-truth-textLight hover:border-truth-textLight transition-all">
+         <button className="bg-truth-surface border-2 border-truth-surface-border py-4 px-6 flex items-center justify-center gap-3 font-mono text-[10px] uppercase tracking-widest text-truth-on-surface-muted hover:text-truth-on-surface hover:border-truth-on-surface transition-all">
             <SlidersHorizontal className="w-4 h-4" />
             ADVANCED_FILTERS
          </button>
