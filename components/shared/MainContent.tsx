@@ -14,11 +14,11 @@ export default function MainContent({
     <main 
       {...props}
       className={cn(
-        "flex-1 relative min-h-screen transition-all duration-300",
+        "flex-1 relative min-h-screen transition-all duration-300 overflow-x-hidden",
         props.className
       )}
     >
-      <div className="p-4 md:p-8 pb-32 md:pb-8">
+      <div className="p-3 sm:p-4 md:p-8 pb-28 md:pb-8 overflow-x-hidden">
         {children}
       </div>
     </main>

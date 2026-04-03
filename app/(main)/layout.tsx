@@ -11,6 +11,7 @@ import ClientEffects from "@/components/shared/ClientEffects"
 import MobileHeader from "@/components/shared/MobileHeader"
 import CommandPalette from "@/components/shared/CommandPalette"
 import PerformanceAnalytics from "@/components/shared/PerformanceAnalytics"
+import { prisma } from "@/lib/db/prisma"
 
 export default async function MainLayout({
   children,
@@ -23,10 +24,21 @@ export default async function MainLayout({
     redirect("/login")
   }
 
+  // ONBOARDING GUARD: JWT token may be stale (e.g. user completed onboarding
+  // before the JWT was refreshed). Trust the DB as the source of truth.
+  let hasCompletedOnboarding = session.user.hasCompletedOnboarding ?? false
+  if (!hasCompletedOnboarding) {
+    const dbUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { hasCompletedOnboarding: true },
+    })
+    hasCompletedOnboarding = dbUser?.hasCompletedOnboarding ?? false
+  }
+
   return (
     <SidebarProvider>
       <ClientEffects />
-      <div className="flex bg-background min-h-screen">
+      <div className="flex bg-background min-h-screen overflow-x-hidden">
         <a href="#main-content" className="sr-only focus:not-sr-only fixed top-4 left-4 z-200 bg-truth-accentRed text-black px-4 py-2 font-mono text-xs uppercase font-bold">
           Skip_to_Content
         </a>
@@ -45,9 +57,9 @@ export default async function MainLayout({
             <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-truth-accentBlue/5 blur-[100px] dark:opacity-100 opacity-20" />
           </div>
           
-          <div className="relative z-10 max-w-7xl mx-auto">
-            <div className="flex items-start gap-8">
-               <div className="flex-1 min-w-0">
+          <div className="relative z-10 w-full max-w-7xl mx-auto">
+            <div className="flex items-start gap-6 lg:gap-8">
+               <div className="flex-1 min-w-0 overflow-hidden">
                  <PageTransition>{children}</PageTransition>
                </div>
                <div className="hidden xl:block w-80 shrink-0 sticky top-8">
@@ -62,7 +74,7 @@ export default async function MainLayout({
         <div className="fixed inset-0 border-16px border-card/10 pointer-events-none z-50 box-border" />
         
         {/* Onboarding Overlay */}
-        {!session.user.hasCompletedOnboarding && (
+        {!hasCompletedOnboarding && (
           <OnboardingFlow />
         )}
 

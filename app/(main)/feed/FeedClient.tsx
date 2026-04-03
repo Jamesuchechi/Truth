@@ -135,28 +135,30 @@ export default function FeedClient({ initialPosts, stories, user }: FeedClientPr
 
   return (
     <>
-      <div className="flex gap-3 mb-10 overflow-x-auto pb-4 hide-scrollbar">
-        {[
-          { id: "FOR_YOU", label: "FOR_YOU", icon: Compass, color: "text-truth-accentRed", border: "border-truth-accentRed" },
-          { id: "FRESH", label: "FRESH_SIGNAL", icon: Clock, color: "text-truth-accentGreen", border: "border-truth-accentGreen" },
-          { id: "FOLLOWING", label: "OBSERVING", icon: Wifi, color: "text-truth-accentBlue", border: "border-truth-accentBlue" },
-          { id: "TRENDING", label: "HIGH_PULSE", icon: Flame, color: "text-truth-accentYellow", border: "border-truth-accentYellow" },
-          { id: "DEEP_DIVE", label: "DEEP_DIVE", icon: BookOpen, color: "text-truth-accentPurple", border: "border-truth-accentPurple" },
-          { id: "QUICK_HITS", label: "QUICK_HITS", icon: ZapIcon, color: "text-truth-textLight", border: "border-truth-textLight" },
-        ].map((tab) => (
-          <button 
-            key={tab.id}
-            onClick={() => handleTabChange(tab.id as FeedTab)}
-            className={`
-              flex items-center gap-2 px-6 py-3 font-mono text-[9px] uppercase tracking-widest border-2 transition-all shrink-0
-              ${activeTab === tab.id 
-                ? `bg-card ${tab.color} ${tab.border} shadow-[4px_4px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_10px_rgba(255,255,255,0.05)]` 
-                : "bg-transparent border-border text-muted hover:border-foreground hover:text-foreground"}
-            `}
-          >
-            <tab.icon className="w-3 h-3" /> {tab.label}
-          </button>
-        ))}
+      <div className="-mx-3 sm:-mx-4 md:mx-0 mb-8 sm:mb-10">
+        <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-3 px-3 sm:px-4 md:px-0 scrollbar-hide">
+          {[
+            { id: "FOR_YOU", label: "FOR_YOU", icon: Compass, color: "text-truth-accentRed", border: "border-truth-accentRed" },
+            { id: "FRESH", label: "FRESH", icon: Clock, color: "text-truth-accentGreen", border: "border-truth-accentGreen" },
+            { id: "FOLLOWING", label: "OBSERVING", icon: Wifi, color: "text-truth-accentBlue", border: "border-truth-accentBlue" },
+            { id: "TRENDING", label: "TRENDING", icon: Flame, color: "text-truth-accentYellow", border: "border-truth-accentYellow" },
+            { id: "DEEP_DIVE", label: "DEEP", icon: BookOpen, color: "text-truth-accentPurple", border: "border-truth-accentPurple" },
+            { id: "QUICK_HITS", label: "QUICK", icon: ZapIcon, color: "text-truth-textLight", border: "border-truth-textLight" },
+          ].map((tab) => (
+            <button 
+              key={tab.id}
+              onClick={() => handleTabChange(tab.id as FeedTab)}
+              className={`
+                flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-3 font-mono text-[8px] sm:text-[9px] uppercase tracking-widest border-2 transition-all shrink-0
+                ${activeTab === tab.id 
+                  ? `bg-card ${tab.color} ${tab.border} shadow-[2px_2px_0px_rgba(0,0,0,0.1)] dark:shadow-[2px_2px_6px_rgba(255,255,255,0.05)]` 
+                  : "bg-transparent border-border text-muted hover:border-foreground hover:text-foreground"}
+              `}
+            >
+              <tab.icon className="w-3 h-3" /> {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <StoriesBar stories={stories} onOpenComposer={() => setIsComposeOpen(true)} />
@@ -220,7 +222,7 @@ export default function FeedClient({ initialPosts, stories, user }: FeedClientPr
 
       <button 
         onClick={() => setIsComposeOpen(true)}
-        className="fixed bottom-12 right-12 xl:right-92 w-16 h-16 bg-truth-accentRed shadow-[10px_10px_0px_rgba(0,0,0,0.4)] flex items-center justify-center group hover:-translate-x-1 hover:-translate-y-1 active:translate-x-0 active:translate-y-0 transition-all z-40"
+        className="fixed bottom-24 lg:bottom-12 right-4 sm:right-8 xl:right-92 w-14 h-14 sm:w-16 sm:h-16 bg-truth-accentRed shadow-[4px_4px_0px_rgba(0,0,0,0.4)] flex items-center justify-center group hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0 active:translate-y-0 transition-all z-40"
       >
         <Plus className="w-8 h-8 text-truth-bg group-hover:rotate-90 transition-transform duration-300" />
       </button>

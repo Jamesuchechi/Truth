@@ -159,9 +159,10 @@ export function PostCard({
       viewport={{ once: true, margin: "-50px" }}
       {...tapScale}
       className={`
-        group relative bg-card border-2 p-8 mb-6 transition-all duration-500 shadow-[10px_10px_0px_rgba(0,0,0,0.1)] dark:shadow-[10px_10px_0px_rgba(0,0,0,0.5)]
-        ${isStory ? "border-truth-accentPurple shadow-[10px_10px_0px_rgba(168,85,247,0.1)]" : "border-border hover:border-truth-accentRed hover:shadow-[12px_12px_0px_rgba(255,51,102,0.15)]"}
-        ${isDetail ? "scale-[1.02] shadow-[15px_15px_0px_rgba(0,0,0,0.2)] dark:shadow-[15px_15px_0px_rgba(0,0,0,0.6)]" : "cursor-pointer"}
+        group relative bg-card border-2 p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 transition-all duration-500 overflow-hidden
+        shadow-[4px_4px_0px_rgba(0,0,0,0.1)] sm:shadow-[8px_8px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_rgba(0,0,0,0.5)] dark:sm:shadow-[8px_8px_0px_rgba(0,0,0,0.5)]
+        ${isStory ? "border-truth-accentPurple" : "border-border hover:border-truth-accentRed"}
+        ${isDetail ? "" : "cursor-pointer"}
       `}
     >
       {/* Header and other elements remain mostly the same, but we wrap content in Link if not detail */}
@@ -174,7 +175,7 @@ export function PostCard({
       <div className={`absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none bg-linear-to-r from-transparent ${isStory ? "via-truth-accentPurple/5" : "via-truth-accentRed/5"} to-transparent`} />
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-8 relative z-10">
+      <div className="flex items-start justify-between mb-4 sm:mb-6 lg:mb-8 relative z-10">
         <div className="flex items-center gap-4">
           <div className={`p-0.5 border-2 ${isShadow ? "border-truth-accentRed" : isStory ? "border-truth-accentPurple" : "border-border"}`}>
              <div className="w-10 h-10 bg-background flex items-center justify-center relative overflow-hidden">
@@ -313,7 +314,7 @@ export function PostCard({
       </div>
 
       {/* Content Section */}
-      <div className="space-y-6 mb-8 relative z-10">
+      <div className="space-y-4 mb-4 sm:mb-6 lg:mb-8 relative z-10">
         {post.isFiltered && !isAuthor ? (
           <div className="py-12 flex flex-col items-center gap-4 bg-truth-accentRed/5 border-2 border-dashed border-truth-accentRed/20">
              <ShieldAlert className="w-12 h-12 text-truth-accentRed opacity-20" />
@@ -361,7 +362,7 @@ export function PostCard({
         ) : (
           <div className="space-y-4">
             <div className={isDetail ? "" : "block group/content relative"}>
-              <div className={`font-bitter ${isDetail ? "text-2xl" : "text-xl"} text-foreground leading-relaxed prose prose-invert prose-lg max-w-none selection:bg-truth-accentRed selection:text-truth-bg`}>
+              <div className={`font-bitter ${isDetail ? "text-lg sm:text-2xl" : "text-base sm:text-lg lg:text-xl"} text-foreground leading-relaxed prose prose-invert max-w-none selection:bg-truth-accentRed selection:text-truth-bg`}>
                 <ReactMarkdown>{displayContent}</ReactMarkdown>
               </div>
               {!isDetail && isLong && (
@@ -424,7 +425,7 @@ export function PostCard({
       </div>
 
       {/* Thread/Story Indicators */}
-      <div className="flex gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row gap-3 mb-4 sm:mb-6 lg:mb-8">
         {post.visibilityType === 'LIMITED' && (
           <div className="p-3 bg-truth-accentBlue/5 border-l-4 border-truth-accentBlue flex flex-col gap-1 flex-1 relative overflow-hidden group/scarcity">
             <div className="flex items-center gap-3">
@@ -471,8 +472,8 @@ export function PostCard({
       </div>
 
       {/* Footer Actions */}
-      <div className="flex items-center justify-between pt-6 border-t border-truth-midGray relative z-10">
-        <div className="flex items-center gap-6">
+      <div className="flex items-center justify-between pt-4 sm:pt-6 border-t border-truth-midGray relative z-10 gap-2 flex-wrap">
+        <div className="flex items-center gap-3 sm:gap-6">
           <div className="relative">
             <button 
               disabled={isPending}

@@ -76,6 +76,7 @@ declare module "next-auth/jwt" {
     shadowName?: string | null
     defaultShadowMode?: boolean
     showShadowOnProfile?: boolean
+    hasCompletedOnboarding?: boolean
   }
 }
 
@@ -164,6 +165,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.shadowName = session.shadowName
         token.defaultShadowMode = session.defaultShadowMode
         token.showShadowOnProfile = session.showShadowOnProfile
+        // Allow completeOnboarding() to persist this into the JWT cookie
+        if (session.hasCompletedOnboarding !== undefined) {
+          token.hasCompletedOnboarding = session.hasCompletedOnboarding
+        }
       }
       return token
     },

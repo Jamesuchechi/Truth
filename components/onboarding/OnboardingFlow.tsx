@@ -9,6 +9,7 @@ import { ChannelStep } from "./ChannelStep"
 import { TutorialStep } from "./TutorialStep"
 import { PromptStep } from "./PromptStep"
 import { useToast } from "@/components/providers/ToastProvider"
+import { useSession } from "next-auth/react"
 
 export type OnboardingStep = "WELCOME" | "CHANNELS" | "TUTORIAL" | "PROMPT"
 
@@ -16,6 +17,7 @@ export default function OnboardingFlow() {
   const [step, setStep] = useState<OnboardingStep>("WELCOME")
   const [isExiting, setIsExiting] = useState(false)
   const { showToast } = useToast()
+  const { update } = useSession()
 
   const handleComplete = async () => {
     setIsExiting(true)
@@ -23,7 +25,11 @@ export default function OnboardingFlow() {
     if (res.error) {
       showToast("Protocol synchronization failed.", "error")
       setIsExiting(false)
+      return
     }
+    // Push hasCompletedOnboarding:true into the JWT cookie so hard
+    // refreshes don't re-read the stale token and re-show this modal.
+    await update({ hasCompletedOnboarding: true })
   }
 
   const handleSkip = () => handleComplete()
