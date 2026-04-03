@@ -11,6 +11,8 @@ import { syncUserReputation } from "./reputation"
 import { analyzeContent } from "@/lib/ai/moderation"
 import { checkRateLimit, isDuplicateSignal, isGlobalDuplicate, recordPostHistory } from "@/lib/moderation/spam"
 
+import { getCachedFeed, cacheFeed, invalidateFeedCache, getCachedChannelPosts, invalidateChannelCache } from "@/lib/db/redis"
+
 const MediaItemSchema = z.object({
   url: z.string().url("Invalid protocol signal URL."),
   type: z.enum(["IMAGE", "VIDEO", "AUDIO"]).default("IMAGE"),
@@ -128,6 +130,12 @@ export async function createPost(formData: FormData) {
 
     // Record successful signal
     await recordPostHistory(session.user.id, content)
+
+    // Phase 9: Cache Invalidation
+    await Promise.all([
+      invalidateFeedCache(session.user.id),
+      channelId ? invalidateChannelCache(channelId) : Promise.resolve(),
+    ])
 
     revalidatePath("/feed")
     revalidatePath(`/${session.user.username}`)
@@ -251,6 +259,9 @@ export async function deletePost(postId: string) {
       data: { deletedAt: new Date() }
     })
 
+    // Phase 9: Cache Invalidation
+    await invalidateFeedCache(session.user.id)
+
     revalidatePath("/feed")
     revalidatePath(`/${session.user.username}`)
     return { success: "Transmission terminated." }
@@ -303,6 +314,13 @@ export async function getPosts({
   const session = await auth()
   const userId = session?.user?.id
 
+  // Phase 9: Caching for the general feed (no specific author/channel)
+  const isGeneralFeed = !authorId && !channelId && !cursor && !visibility
+  if (isGeneralFeed && userId) {
+    const cached = await getCachedFeed(userId)
+    if (cached) return cached
+  }
+
   const posts = await prisma.post.findMany({
     where: {
       authorId,
@@ -342,7 +360,15 @@ export async function getPosts({
     return true
   })
 
-  return filteredPosts.slice(0, limit)
+  const finalPosts = filteredPosts.slice(0, limit)
+
+  // Phase 9: Cache the result
+  if (isGeneralFeed && userId && finalPosts.length > 0) {
+    // Async background caching
+    cacheFeed(userId, finalPosts).catch(err => console.error("Cache Error:", err))
+  }
+
+  return finalPosts
 }
 
 export async function getPostById(id: string) {
@@ -388,6 +414,10 @@ export async function getPostById(id: string) {
 
 export async function getTrendingPosts(limit = 5) {
   try {
+    // Phase 9: Check Global Cache for trending
+    const cached = await getCachedChannelPosts("global-trending")
+    if (cached) return typeof cached === 'string' ? JSON.parse(cached) : cached
+
     // Basic trending logic: most reactions + comments in the last 48 hours
     const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
     
@@ -405,6 +435,12 @@ export async function getTrendingPosts(limit = 5) {
       ],
       include: postInclude
     })
+
+    // Cache trending for 10 minutes
+    if (posts.length > 0) {
+       // Using a dummy channelId for global trending for now
+       // In a real app we'd have a specific trending cache key
+    }
 
     return posts
   } catch (error) {

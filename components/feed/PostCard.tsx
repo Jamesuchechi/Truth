@@ -189,7 +189,7 @@ export function PostCard({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className={`font-bitter font-black text-sm uppercase tracking-tighter ${isShadow ? "text-truth-accentRed" : isStory ? "text-truth-accentPurple" : "text-truth-textLight"}`}>
+              <h3 className={`font-bitter font-black text-sm uppercase tracking-tighter ${isShadow ? "text-truth-accentRed" : isStory ? "text-truth-accentPurple" : "text-foreground"}`}>
                 {isShadow ? "SHADOW_IDENTITY" : post.author.username}
               </h3>
               {post.channel && (
@@ -197,7 +197,7 @@ export function PostCard({
                   href={`/channels/${post.channel.slug}`}
                   className="flex items-center gap-2 group/chan"
                 >
-                  <span className="text-truth-textGray text-[10px] group-hover/chan:text-truth-textLight transition-colors">IN</span>
+                  <span className="text-muted text-[10px] group-hover/chan:text-foreground transition-colors">IN</span>
                   <span 
                     className="font-mono text-[9px] uppercase tracking-widest px-2 py-0.5 bg-opacity-10 border border-opacity-20 transition-all hover:bg-opacity-20"
                     style={{ 
@@ -216,7 +216,7 @@ export function PostCard({
                 </span>
               )}
             </div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[9px] text-truth-textGray uppercase tracking-widest mt-1">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[9px] text-muted uppercase tracking-widest mt-1">
               <span className="flex items-center gap-1.5">
                 {isShadow ? `MASK_ID: ${post.author.shadowName || 'ANONYMOUS'}` : "AUTH_VERIFIED"}
                 {isShadow && post.author.shadowVerified && (
@@ -249,7 +249,7 @@ export function PostCard({
         <div className="relative">
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="text-truth-textGray hover:text-truth-textLight transition-colors p-2"
+            className="text-muted hover:text-foreground transition-colors p-2"
           >
             <MoreHorizontal className="w-5 h-5" />
           </button>
@@ -317,14 +317,14 @@ export function PostCard({
         {post.isFiltered && !isAuthor ? (
           <div className="py-12 flex flex-col items-center gap-4 bg-truth-accentRed/5 border-2 border-dashed border-truth-accentRed/20">
              <ShieldAlert className="w-12 h-12 text-truth-accentRed opacity-20" />
-             <p className="font-mono text-[10px] text-truth-textGray uppercase tracking-widest">Signal terminated by autonomous protocol.</p>
+             <p className="font-mono text-[10px] text-muted uppercase tracking-widest">Signal terminated by autonomous protocol.</p>
           </div>
         ) : post.isFiltered && isAuthor ? (
           <div className="p-6 bg-truth-accentRed/10 border-2 border-truth-accentRed space-y-4">
              <div className="flex items-center gap-3 text-truth-accentRed font-mono text-[10px] uppercase font-black">
                 <AlertTriangle className="w-4 h-4" /> TRANSMISSION_FILTERED
              </div>
-             <p className="font-bitter text-sm text-truth-textLight leading-relaxed">
+             <p className="font-bitter text-sm text-foreground leading-relaxed">
                Your signal has been quarantined by the AI moderation layer. No other nodes can observe this content.
              </p>
              <button 
@@ -339,13 +339,13 @@ export function PostCard({
             <textarea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
-              className="w-full bg-black border-2 border-truth-accentBlue p-4 font-bitter text-truth-textLight focus:outline-none min-h-[150px] selection:bg-truth-accentBlue/30"
+              className="w-full bg-black border-2 border-truth-accentBlue p-4 font-bitter text-foreground focus:outline-none min-h-[150px] selection:bg-truth-accentBlue/30"
               placeholder="UPDATE_TRUTH_DATA..."
             />
             <div className="flex justify-end gap-4">
               <button 
                 onClick={() => setIsEditing(false)}
-                className="font-mono text-[10px] text-truth-textGray hover:text-truth-textLight uppercase tracking-widest"
+                className="font-mono text-[10px] text-muted hover:text-foreground uppercase tracking-widest"
               >
                 ABORT_UPDATE
               </button>
@@ -361,7 +361,7 @@ export function PostCard({
         ) : (
           <div className="space-y-4">
             <div className={isDetail ? "" : "block group/content relative"}>
-              <div className={`font-bitter ${isDetail ? "text-2xl" : "text-xl"} text-truth-textLight leading-relaxed prose prose-invert prose-lg max-w-none selection:bg-truth-accentRed selection:text-truth-bg`}>
+              <div className={`font-bitter ${isDetail ? "text-2xl" : "text-xl"} text-foreground leading-relaxed prose prose-invert prose-lg max-w-none selection:bg-truth-accentRed selection:text-truth-bg`}>
                 <ReactMarkdown>{displayContent}</ReactMarkdown>
               </div>
               {!isDetail && isLong && (
@@ -373,7 +373,7 @@ export function PostCard({
                     <button 
                       onClick={handleScan}
                       disabled={isScanning}
-                      className="flex items-center gap-1.5 font-mono text-[9px] text-truth-accentBlue hover:text-truth-textLight uppercase tracking-widest border border-truth-accentBlue/30 px-2 py-0.5 bg-truth-accentBlue/5 transition-all disabled:opacity-50 pointer-events-auto"
+                      className="flex items-center gap-1.5 font-mono text-[9px] text-truth-accentBlue hover:text-foreground uppercase tracking-widest border border-truth-accentBlue/30 px-2 py-0.5 bg-truth-accentBlue/5 transition-all disabled:opacity-50 pointer-events-auto"
                     >
                       {isScanning ? (
                         <>
@@ -434,7 +434,7 @@ export function PostCard({
               </span>
             </div>
             <div className="flex items-center justify-between mt-1">
-              <span className="font-mono text-[8px] text-truth-textGray uppercase tracking-widest">
+              <span className="font-mono text-[8px] text-muted uppercase tracking-widest">
                 YOU_ARE_1_OF_{post.viewsLimit}_AUTHORIZED_OBSERVERS
               </span>
               <span className="font-mono text-[9px] text-truth-accentBlue font-black">
@@ -615,7 +615,7 @@ export function PostCard({
               e.stopPropagation()
               setIsReportModalOpen(true)
             }}
-            className="flex items-center gap-2 text-truth-textGray hover:text-truth-accentRed transition-all group/btn"
+            className="flex items-center gap-2 text-muted hover:text-truth-accentRed transition-all group/btn"
             title="Report Signal Violation"
           >
             <div className="p-2 border border-transparent group-hover/btn:border-truth-accentRed transition-all">
@@ -624,7 +624,7 @@ export function PostCard({
           </button>
         </div>
 
-        <button className="flex items-center gap-1.5 font-mono text-[10px] text-truth-textGray hover:text-truth-textLight transition-colors group/view">
+        <button className="flex items-center gap-1.5 font-mono text-[10px] text-muted hover:text-foreground transition-colors group/view">
           VIEW_DECRYPTION
           <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
         </button>
@@ -664,7 +664,7 @@ export function PostCard({
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 placeholder="Synchronize comment signal..."
-                className="flex-1 bg-truth-nearBlack border border-truth-midGray px-4 py-2 font-mono text-[10px] text-truth-textLight placeholder:text-truth-textGray/40 focus:outline-none focus:border-truth-accentBlue transition-colors"
+                className="flex-1 bg-truth-nearBlack border border-truth-midGray px-4 py-2 font-mono text-[10px] text-foreground placeholder:text-muted/40 focus:outline-none focus:border-truth-accentBlue transition-colors"
                 disabled={isPending}
               />
               <button 

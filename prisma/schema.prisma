@@ -298,6 +298,8 @@ model Post {
   @@index([channelId])
   @@index([createdAt])
   @@index([visibilityType])
+  @@index([authorId, createdAt])
+  @@index([channelId, createdAt])
 }
 
 enum VisibilityType {
@@ -561,6 +563,7 @@ model Reaction {
   @@index([postId])
   @@index([commentId])
   @@index([userId])
+  @@index([postId, type])
 }
 
 enum ReactionType {

@@ -7,51 +7,51 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN!
 })
 
+/**
+ * Enhanced Redis-based Sliding Window Rate Limiter
+ * @param identifier Unique key (e.g. user ID or IP)
+ * @param limit Max actions allowed in the window
+ * @param window Duration of window in seconds
+ */
 export async function rateLimit(
   identifier: string,
   limit: number,
-  window: number // seconds
-): Promise<{ success: boolean; remaining: number }> {
-  const key = `rate_limit:${identifier}`
-  
-  const current = await redis.incr(key)
-  
-  if (current === 1) {
-    await redis.expire(key, window)
-  }
+  window: number
+): Promise<{ success: boolean; remaining: number; reset: number }> {
+  const key = `ratelimit:${identifier}`
+  const now = Date.now()
+  const windowMs = window * 1000
+  const minScore = now - windowMs
 
-  const remaining = Math.max(0, limit - current)
+  try {
+    const pipeline = redis.pipeline()
 
-  return {
-    success: current <= limit,
-    remaining
+    // Remove old entries outside the window
+    pipeline.zremrangebyscore(key, 0, minScore)
+    // Add current request
+    pipeline.zadd(key, { score: now, member: `${now}-${Math.random()}` })
+    // Count active entries in window
+    pipeline.zcard(key)
+    // Set expiry
+    pipeline.expire(key, window)
+
+    const results = await pipeline.exec()
+    const count = results[2] as number
+    const remaining = Math.max(0, limit - count)
+    const success = count <= limit
+
+    // Calculate reset time (earliest entry + window)
+    const earliest = await redis.zrange<{ score: number; member: string }[]>(key, 0, 0, { withScores: true })
+    const reset = earliest.length > 0 ? earliest[0].score + windowMs : now + windowMs
+
+    return {
+      success,
+      remaining,
+      reset: Math.ceil(reset / 1000)
+    }
+  } catch (error) {
+    console.error("[RATELIMIT] Redis filtering failure:", error)
+    // Fail-soft: allow the request but log the error
+    return { success: true, remaining: 1, reset: Math.ceil((now + windowMs) / 1000) }
   }
 }
-
-// Usage in API route (Example)
-/*
-import { NextRequest, NextResponse } from 'next/server'
-// import { getServerSession } from 'next-auth'
-// import { authOptions } from '@/lib/auth' // Or wherever your authOptions is
-
-export async function POST(request: NextRequest) {
-  // const session = await getServerSession(authOptions)
-  // const userId = session?.user?.id || request.ip || 'anonymous'
-  
-  // For demonstration, using simple IP fallback
-  const userId = request.ip || 'anonymous'
-
-  // 10 posts per hour
-  const { success, remaining } = await rateLimit(`posts:${userId}`, 10, 3600)
-
-  if (!success) {
-    return NextResponse.json(
-      { error: 'Rate limit exceeded', remaining },
-      { status: 429 }
-    )
-  }
-
-  // Continue with post creation...
-  return NextResponse.json({ success: true })
-}
-*/

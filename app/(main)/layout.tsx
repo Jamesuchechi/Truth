@@ -10,6 +10,7 @@ import BottomNav from "@/components/shared/BottomNav"
 import ClientEffects from "@/components/shared/ClientEffects"
 import MobileHeader from "@/components/shared/MobileHeader"
 import CommandPalette from "@/components/shared/CommandPalette"
+import PerformanceAnalytics from "@/components/shared/PerformanceAnalytics"
 
 export default async function MainLayout({
   children,
@@ -45,7 +46,7 @@ export default async function MainLayout({
           </div>
           
           <div className="relative z-10 max-w-7xl mx-auto">
-            <div className="flex items-start gap-12">
+            <div className="flex items-start gap-8">
                <div className="flex-1 min-w-0">
                  <PageTransition>{children}</PageTransition>
                </div>
@@ -58,7 +59,7 @@ export default async function MainLayout({
       </div>
 
         {/* Decorative Border Overlay - Updated for theme readability */}
-        <div className="fixed inset-0 border-16px border-card/10 pointer-events-none z-50" />
+        <div className="fixed inset-0 border-16px border-card/10 pointer-events-none z-50 box-border" />
         
         {/* Onboarding Overlay */}
         {!session.user.hasCompletedOnboarding && (
@@ -68,6 +69,7 @@ export default async function MainLayout({
         {/* Navigation Layers */}
         <BottomNav user={session.user} />
         <CommandPalette />
+        <PerformanceAnalytics />
       </div>
     </SidebarProvider>
   )

@@ -40,10 +40,10 @@ export default async function FeedPage() {
       <header className="mb-12 relative overflow-hidden">
         <div className="flex items-end justify-between border-b-4 border-truth-midGray pb-6 relative z-10">
           <div>
-            <h1 className="font-bitter font-black text-6xl text-truth-textLight tracking-tighter uppercase leading-none">
+            <h1 className="font-bitter font-black text-6xl text-foreground tracking-tighter uppercase leading-none">
               TRUTH<span className="text-truth-accentRed animate-pulse">_SIGNAL</span>
             </h1>
-            <p className="font-mono text-xs text-truth-textGray uppercase tracking-[0.4em] mt-3 flex items-center gap-2">
+            <p className="font-mono text-xs text-muted uppercase tracking-[0.4em] mt-3 flex items-center gap-2">
               <TerminalIcon className="w-3 h-3 text-truth-accentRed" /> PROTOCOL_V03.1 // BROADCAST_SYNC: ACTIVE
             </p>
           </div>
