@@ -48,7 +48,7 @@ export default function ImageCarousel({ media, priority = false }: ImageCarousel
   if (media.length === 0) return null
 
   return (
-    <div className="relative group aspect-video md:aspect-square w-full bg-card rounded-xl overflow-hidden border border-border shadow-2xl">
+    <div className="relative group aspect-video w-full bg-black rounded-xl overflow-hidden border border-border shadow-2xl">
       <AnimatePresence initial={false} custom={direction}>
         <motion.div
           key={currentIndex}
@@ -85,7 +85,7 @@ export default function ImageCarousel({ media, priority = false }: ImageCarousel
             alt={`Transmission Frame ${currentIndex + 1}`}
             fill
             className={`object-cover transition-all duration-700 ${isLoading ? 'scale-110 blur-2xl opacity-0' : 'scale-100 blur-0 opacity-100'}`}
-            onLoadingComplete={() => setIsLoading(false)}
+            onLoad={() => setIsLoading(false)}
             priority={priority && currentIndex === 0}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />

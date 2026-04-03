@@ -44,8 +44,9 @@ export default async function FeedPage() {
             <h1 className="font-bitter font-black text-4xl sm:text-5xl lg:text-6xl wrap-break-word text-foreground tracking-tighter uppercase leading-none">
               TRUTH<span className="text-truth-accentRed animate-pulse">_SIGNAL</span>
             </h1>
-            <p className="font-mono text-xs text-muted uppercase tracking-[0.4em] mt-3 flex items-center gap-2">
-              <TerminalIcon className="w-3 h-3 text-truth-accentRed" /> PROTOCOL_V03.1 // BROADCAST_SYNC: ACTIVE
+            <p className="font-mono text-xs text-muted uppercase tracking-[0.2em] sm:tracking-[0.4em] mt-3 flex flex-wrap items-center gap-2 max-w-full wrap-break-word">
+              <TerminalIcon className="w-3 h-3 text-truth-accentRed shrink-0" /> 
+              <span>PROTOCOL_V03.1 // BROADCAST_SYNC: ACTIVE</span>
             </p>
           </div>
           <div className="hidden md:flex flex-col items-end gap-2 text-right">
