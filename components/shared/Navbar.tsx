@@ -2,8 +2,9 @@
 import Link from "next/link"
 import { auth } from "@/auth"
 import { logoutUser } from "@/lib/actions/user"
-import { Menu, User as UserIcon, LogOut } from "lucide-react"
+import { User as UserIcon, LogOut } from "lucide-react"
 import Logo from "./Logo"
+import NavbarMobileMenu from "./NavbarMobileMenu"
 
 export default async function Navbar() {
   const session = await auth()
@@ -57,10 +58,8 @@ export default async function Navbar() {
           )}
         </div>
 
-        {/* Mobile Menu Trigger (Placeholder for now) */}
-        <button className="md:hidden p-2 text-truth-textLight">
-          <Menu className="w-6 h-6" />
-        </button>
+        {/* Mobile Menu */}
+        <NavbarMobileMenu user={user} />
       </div>
     </nav>
   )
