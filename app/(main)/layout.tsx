@@ -38,7 +38,7 @@ export default async function MainLayout({
   return (
     <SidebarProvider>
       <ClientEffects />
-      <div className="flex bg-background min-h-screen overflow-x-hidden">
+      <div className="flex bg-background min-h-screen">
         <a href="#main-content" className="sr-only focus:not-sr-only fixed top-4 left-4 z-200 bg-truth-accentRed text-black px-4 py-2 font-mono text-xs uppercase font-bold">
           Skip_to_Content
         </a>
@@ -57,7 +57,7 @@ export default async function MainLayout({
             <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-truth-accentBlue/5 blur-[100px] dark:opacity-100 opacity-20" />
           </div>
           
-          <div className="relative z-10 w-full max-w-7xl mx-auto">
+          <div className="relative z-10 w-full max-w-[1600px]">
             <div className="flex items-start gap-6 lg:gap-8">
                <div className="flex-1 min-w-0">
                  <PageTransition>{children}</PageTransition>
