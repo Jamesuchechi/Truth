@@ -18,7 +18,7 @@ export default function MainContent({
         props.className
       )}
     >
-      <div className="p-3 sm:p-4 md:p-8 pb-28 md:pb-8 overflow-x-hidden">
+      <div className="p-3 sm:p-4 md:p-8 pb-28 md:pb-8">
         {children}
       </div>
     </main>

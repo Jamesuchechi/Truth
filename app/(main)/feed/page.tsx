@@ -36,12 +36,12 @@ export default async function FeedPage() {
   })
 
   return (
-    <div className="max-w-6xl mx-auto px-8 py-12">
+    <div className="max-w-6xl mx-auto py-12">
       {/* Feed Header - Twitch Style Pulse */}
       <header className="mb-12 relative overflow-hidden">
-        <div className="flex items-end justify-between border-b-4 border-truth-midGray pb-6 relative z-10">
-          <div>
-            <h1 className="font-bitter font-black text-6xl text-foreground tracking-tighter uppercase leading-none">
+        <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between border-b-4 border-truth-midGray pb-6 relative z-10 gap-4">
+          <div className="min-w-0 w-full overflow-hidden">
+            <h1 className="font-bitter font-black text-4xl sm:text-5xl lg:text-6xl wrap-break-word text-foreground tracking-tighter uppercase leading-none">
               TRUTH<span className="text-truth-accentRed animate-pulse">_SIGNAL</span>
             </h1>
             <p className="font-mono text-xs text-muted uppercase tracking-[0.4em] mt-3 flex items-center gap-2">

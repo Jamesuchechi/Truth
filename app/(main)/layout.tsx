@@ -59,7 +59,7 @@ export default async function MainLayout({
           
           <div className="relative z-10 w-full max-w-7xl mx-auto">
             <div className="flex items-start gap-6 lg:gap-8">
-               <div className="flex-1 min-w-0 overflow-hidden">
+               <div className="flex-1 min-w-0">
                  <PageTransition>{children}</PageTransition>
                </div>
                <div className="hidden xl:block w-80 shrink-0 sticky top-8">

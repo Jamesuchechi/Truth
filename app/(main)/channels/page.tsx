@@ -6,7 +6,7 @@ export default async function ChannelsPage() {
   const channels = await getChannels()
 
   return (
-    <div className="max-w-6xl mx-auto py-12 px-6 space-y-12 animate-fadeIn">
+    <div className="max-w-6xl mx-auto py-12 space-y-12 animate-fadeIn">
       {/* Header Section */}
       <section className="relative overflow-hidden bg-truth-surface border-2 border-truth-surface-border p-8 sm:p-12">
         <div className="relative z-10 space-y-4">
@@ -14,7 +14,7 @@ export default async function ChannelsPage() {
              <div className="w-2 h-2 bg-truth-accentRed shadow-[0_0_8px_rgba(255,51,102,0.6)]" />
              Protocol Channel Matrix
            </div>
-           <h1 className="font-bitter text-5xl font-black text-truth-textLight tracking-tighter uppercase leading-[0.9]">
+           <h1 className="font-bitter text-3xl sm:text-4xl lg:text-5xl font-black wrap-break-word text-truth-textLight tracking-tighter uppercase leading-[0.9]">
              CHANNELS_<span className="text-truth-accentRed">V2.0</span>
            </h1>
         </div>
