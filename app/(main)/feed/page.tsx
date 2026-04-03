@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/db/prisma"
 import { Ghost, Terminal as TerminalIcon, ShieldAlert } from "lucide-react"
 import { postInclude } from "@/lib/types/post"
+import type { PostWithRelations } from "@/lib/types/post"
 import FeedClient from "./FeedClient"
 import { PostCard } from "@/components/feed/PostCard"
 
@@ -58,19 +59,19 @@ export default async function FeedPage() {
         {/* Background Decorative Scanline */}
         <div className="absolute bottom-0 left-0 w-full h-[2px] bg-truth-accentRed/20 shadow-[0_0_15px_rgba(255,51,102,0.4)]" />
       </header>
-
+ 
       {/* Feed Client - Handles Stories, Composer Modal and FAB */}
       {session?.user && (
         <FeedClient 
-          initialPosts={posts} 
-          stories={stories} 
+          initialPosts={posts as PostWithRelations[]} 
+          stories={stories as PostWithRelations[]} 
           user={{ id: session.user.id }} 
         />
       )}
 
       {!session?.user && (
          <div className="space-y-8">
-            {posts.map((post) => (
+            {(posts as PostWithRelations[]).map((post) => (
               <PostCard key={post.id} post={post} />
             ))}
          </div>

@@ -5,6 +5,7 @@ import ChannelHeader from "@/components/channels/ChannelHeader"
 import { PostCard } from "@/components/feed/PostCard"
 import PostComposer from "@/components/feed/PostComposer"
 import { auth } from "@/auth"
+import type { PostWithRelations } from "@/lib/types/post"
 
 interface Props {
   params: Promise<{
@@ -57,7 +58,7 @@ export default async function ChannelPage({ params }: Props) {
 
         {posts.length > 0 ? (
           <div className="space-y-6">
-            {posts.map((post) => (
+            {posts.map((post: PostWithRelations) => (
               <PostCard key={post.id} post={post} />
             ))}
           </div>

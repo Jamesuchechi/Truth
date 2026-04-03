@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import type { VisibilityType, MediaType } from "@prisma/client"
 import { postInclude } from "@/lib/types/post"
+import type { PostWithRelations } from "@/lib/types/post"
 import { syncUserReputation } from "./reputation"
 import { analyzeContent } from "@/lib/ai/moderation"
 import { checkRateLimit, isDuplicateSignal, isGlobalDuplicate, recordPostHistory } from "@/lib/moderation/spam"
@@ -299,7 +300,7 @@ export async function getPosts({
   visibility?: VisibilityType
   limit?: number
   cursor?: string
-} = {}) {
+} = {}): Promise<PostWithRelations[]> {
   // Simple hash function for eligibility check
   const getEligibilityScore = (userId: string, postId: string) => {
     let hash = 0
@@ -371,7 +372,7 @@ export async function getPosts({
   return finalPosts
 }
 
-export async function getPostById(id: string) {
+export async function getPostById(id: string): Promise<PostWithRelations | null> {
   const session = await auth()
   const userId = session?.user?.id
 
@@ -412,7 +413,7 @@ export async function getPostById(id: string) {
   }
 }
 
-export async function getTrendingPosts(limit = 5) {
+export async function getTrendingPosts(limit = 5): Promise<PostWithRelations[]> {
   try {
     // Phase 9: Check Global Cache for trending
     const cached = await getCachedChannelPosts("global-trending")
