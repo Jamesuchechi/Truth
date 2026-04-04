@@ -12,6 +12,7 @@ import MobileHeader from "@/components/shared/MobileHeader"
 import CommandPalette from "@/components/shared/CommandPalette"
 import PerformanceAnalytics from "@/components/shared/PerformanceAnalytics"
 import { prisma } from "@/lib/db/prisma"
+import Footer from "@/components/shared/Footer"
 
 export default async function MainLayout({
   children,
@@ -58,14 +59,19 @@ export default async function MainLayout({
           </div>
           
           <div className="relative z-10 w-full max-w-[1600px]">
-            <div className="flex items-start gap-6 lg:gap-8">
-               <div className="flex-1 min-w-0">
-                 <PageTransition>{children}</PageTransition>
-               </div>
-               <div className="hidden xl:block w-80 shrink-0 sticky top-8">
-                 <RightSidebar />
-               </div>
-            </div>
+             <div className="flex items-start gap-6 lg:gap-8">
+                <div className="flex-1 min-w-0">
+                  <PageTransition>{children}</PageTransition>
+                  
+                  {/* Shared Footer - Added for consistency across all sub-pages */}
+                  <div className="mt-12 sm:mt-20">
+                    <Footer />
+                  </div>
+                </div>
+                <div className="hidden xl:block w-80 shrink-0 sticky top-8">
+                  <RightSidebar />
+                </div>
+             </div>
           </div>
         </MainContent>
       </div>

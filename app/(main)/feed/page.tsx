@@ -1,6 +1,6 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/db/prisma"
-import { Ghost, Terminal as TerminalIcon, ShieldAlert } from "lucide-react"
+import { Ghost, Terminal as TerminalIcon} from "lucide-react"
 import { postInclude } from "@/lib/types/post"
 import type { PostWithRelations } from "@/lib/types/post"
 import FeedClient from "./FeedClient"
@@ -94,14 +94,6 @@ export default async function FeedPage() {
           </div>
       )}
 
-      {/* Footer Decoration */}
-      <div className="mt-24 py-12 text-center border-t border-truth-midGray">
-        <div className="flex items-center justify-center gap-4 text-truth-textGray">
-          <ShieldAlert className="w-5 h-5 opacity-30" />
-          <span className="font-mono text-[9px] uppercase tracking-[0.5em]">SYSTEM_END_OF_STREAM</span>
-          <ShieldAlert className="w-5 h-5 opacity-30" />
-        </div>
-      </div>
     </div>
   )
 }

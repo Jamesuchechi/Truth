@@ -31,16 +31,16 @@ const footerSections = [
 
 export default function Footer() {
   return (
-    <footer className="relative bg-truth-bg border-t border-truth-midGray overflow-hidden">
-      <div className="max-w-7xl mx-auto px-8 pt-24 pb-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12 mb-24">
+    <footer className="relative bg-truth-bg border-t border-truth-midGray overflow-hidden w-full">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 pt-16 sm:pt-24 pb-10 sm:pb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-10 sm:gap-12 mb-16 sm:mb-24">
           {/* Brand Column */}
           <div className="lg:col-span-2">
-            <div className="flex items-center gap-4 mb-6">
-              <Logo size={32} />
-              <h3 className="font-bitter text-4xl font-black text-truth-textLight uppercase tracking-tighter">TRUTH</h3>
+            <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+              <Logo size={28} className="sm:w-8 sm:h-8" />
+              <h3 className="font-bitter text-3xl sm:text-4xl font-black text-truth-textLight uppercase tracking-tighter">TRUTH</h3>
             </div>
-            <p className="text-lg text-truth-textGray italic leading-relaxed mb-8">
+            <p className="text-base sm:text-lg text-truth-textGray italic leading-relaxed mb-6 sm:mb-8 max-w-xs">
               Where masks fall<br />and truths rise.
             </p>
             <div className="flex gap-4">
@@ -62,7 +62,7 @@ export default function Footer() {
           {/* Links Columns */}
           {footerSections.map((section, i) => (
             <div key={i} className="lg:col-span-1">
-              <h4 className="font-mono text-[10px] uppercase tracking-[0.2em] font-bold text-truth-textLight mb-8 select-none">
+              <h4 className="font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.2em] font-bold text-truth-textLight mb-5 sm:mb-8 select-none">
                 {section.title}
               </h4>
               <ul className="space-y-4">
@@ -79,18 +79,18 @@ export default function Footer() {
         </div>
 
         {/* Newsletter Signup */}
-        <div className="group flex flex-wrap justify-between items-center bg-truth-darkGray p-12 border border-truth-midGray mb-20 gap-8 hover:border-truth-accentRed transition-all">
+        <div className="group flex flex-wrap justify-between items-center bg-truth-darkGray p-6 sm:p-10 md:p-12 border border-truth-midGray mb-12 sm:mb-20 gap-8 hover:border-truth-accentRed transition-all">
           <div className="max-w-md">
-            <h4 className="font-bitter text-2xl font-black text-truth-textLight mb-2 uppercase">Stay in the Loop</h4>
-            <p className="text-sm text-truth-textGray">Get weekly insights on authenticity, mental health, and the future of social.</p>
+            <h4 className="font-bitter text-xl sm:text-2xl font-black text-truth-textLight mb-2 uppercase tracking-tight">Stay in the Loop</h4>
+            <p className="text-xs sm:text-sm text-truth-textGray">Get weekly insights on authenticity, mental health, and the future of social.</p>
           </div>
-          <form className="flex-1 w-full flex flex-col sm:flex-row gap-4">
+          <form className="flex-1 w-full flex flex-col sm:flex-row gap-3 sm:gap-4">
             <input
               type="email"
               placeholder="node@protocol.com"
-              className="flex-1 bg-truth-bg border border-truth-midGray p-4 text-truth-textLight font-mono focus:outline-none focus:border-truth-accentRed transition-all w-full"
+              className="flex-1 bg-truth-bg border border-truth-midGray p-3 sm:p-4 text-truth-textLight font-mono focus:outline-none focus:border-truth-accentRed transition-all w-full text-xs sm:text-sm"
             />
-            <button className="px-8 py-4 bg-truth-accentRed text-truth-bg font-mono font-bold uppercase tracking-widest hover:bg-white hover:scale-105 transition-all whitespace-nowrap">
+            <button className="px-6 sm:px-8 py-3 sm:py-4 bg-truth-accentRed text-truth-bg font-mono font-bold uppercase tracking-widest hover:bg-white hover:scale-105 transition-all whitespace-nowrap text-xs sm:text-sm">
               SYNC_NODE
             </button>
           </form>
