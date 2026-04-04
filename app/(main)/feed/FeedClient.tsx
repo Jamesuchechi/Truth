@@ -135,8 +135,8 @@ export default function FeedClient({ initialPosts, stories, user }: FeedClientPr
 
   return (
     <>
-      <div className="-mx-3 sm:-mx-4 md:mx-0 mb-8 sm:mb-10 w-full overflow-hidden">
-        <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-3 px-3 sm:px-4 md:px-0 scrollbar-hide max-w-full">
+      <div className="-mx-3 sm:-mx-4 md:mx-0 mb-8 sm:mb-10 overflow-hidden">
+        <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-3 px-3 sm:px-4 md:mx-0 scrollbar-hide">
           {[
             { id: "FOR_YOU", label: "FOR_YOU", icon: Compass, color: "text-truth-accentRed", border: "border-truth-accentRed" },
             { id: "FRESH", label: "FRESH", icon: Clock, color: "text-truth-accentGreen", border: "border-truth-accentGreen" },

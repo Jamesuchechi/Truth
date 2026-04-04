@@ -41,12 +41,12 @@ export default async function FeedPage() {
       <header className="mb-12 relative overflow-hidden">
         <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between border-b-4 border-truth-midGray pb-6 relative z-10 gap-4">
           <div className="min-w-0 w-full overflow-hidden">
-            <h1 className="font-bitter font-black text-4xl sm:text-5xl lg:text-6xl wrap-break-word text-foreground tracking-tighter uppercase leading-none">
+            <h1 className="font-bitter font-black text-4xl sm:text-5xl lg:text-6xl break-words text-foreground tracking-tighter uppercase leading-none">
               TRUTH<span className="text-truth-accentRed animate-pulse">_SIGNAL</span>
             </h1>
-            <p className="font-mono text-xs text-muted uppercase tracking-[0.2em] sm:tracking-[0.4em] mt-3 flex flex-wrap items-center gap-2 max-w-full wrap-break-word">
+            <p className="font-mono text-[10px] sm:text-xs text-muted uppercase tracking-wider sm:tracking-[0.4em] mt-3 flex flex-wrap items-center gap-2 max-w-full break-words">
               <TerminalIcon className="w-3 h-3 text-truth-accentRed shrink-0" /> 
-              <span>PROTOCOL_V03.1 // BROADCAST_SYNC: ACTIVE</span>
+              <span className="truncate sm:whitespace-normal">PROTOCOL_V03.1 // BROADCAST_SYNC: ACTIVE</span>
             </p>
           </div>
           <div className="hidden md:flex flex-col items-end gap-2 text-right">
