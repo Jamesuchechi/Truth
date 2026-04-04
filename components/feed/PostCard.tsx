@@ -159,7 +159,7 @@ export function PostCard({
       viewport={{ once: true, margin: "-50px" }}
       {...tapScale}
       className={`
-        group relative bg-card border-2 p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 transition-all duration-500 overflow-hidden
+        group relative bg-card border-2 p-3 sm:p-6 lg:p-8 mb-4 sm:mb-6 transition-all duration-500
         shadow-[4px_4px_0px_rgba(0,0,0,0.1)] sm:shadow-[8px_8px_0px_rgba(0,0,0,0.1)] dark:shadow-[4px_4px_0px_rgba(0,0,0,0.5)] dark:sm:shadow-[8px_8px_0px_rgba(0,0,0,0.5)]
         ${isStory ? "border-truth-accentPurple" : "border-border hover:border-truth-accentRed"}
         ${isDetail ? "" : "cursor-pointer"}
@@ -175,12 +175,12 @@ export function PostCard({
       <div className={`absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none bg-linear-to-r from-transparent ${isStory ? "via-truth-accentPurple/5" : "via-truth-accentRed/5"} to-transparent`} />
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-4 sm:mb-6 lg:mb-8 relative z-10">
-        <div className="flex items-center gap-4">
-          <div className={`p-0.5 border-2 ${isShadow ? "border-truth-accentRed" : isStory ? "border-truth-accentPurple" : "border-border"}`}>
-             <div className="w-10 h-10 bg-background flex items-center justify-center relative overflow-hidden">
+      <div className="flex items-start justify-between mb-4 sm:mb-6 lg:mb-8 relative z-10 gap-2">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+          <div className={`shrink-0 p-0.5 border-2 ${isShadow ? "border-truth-accentRed" : isStory ? "border-truth-accentPurple" : "border-border"}`}>
+             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-background flex items-center justify-center relative overflow-hidden">
                {isShadow ? (
-                 <Ghost className="w-5 h-5 text-truth-accentRed" />
+                 <Ghost className="w-4 h-4 sm:w-5 sm:h-5 text-truth-accentRed" />
                ) : (
                  <div className="w-full h-full bg-muted/20" />
                )}
@@ -188,15 +188,15 @@ export function PostCard({
                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 pointer-events-none bg-linear-to-t from-truth-accentRed to-transparent animate-glitch" />
              </div>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className={`font-bitter font-black text-sm uppercase tracking-tighter ${isShadow ? "text-truth-accentRed" : isStory ? "text-truth-accentPurple" : "text-foreground"}`}>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <h3 className={`font-bitter font-black text-sm uppercase tracking-tighter truncate ${isShadow ? "text-truth-accentRed" : isStory ? "text-truth-accentPurple" : "text-foreground"}`}>
                 {isShadow ? "SHADOW_IDENTITY" : post.author.username}
               </h3>
               {post.channel && (
                 <Link 
                   href={`/channels/${post.channel.slug}`}
-                  className="flex items-center gap-2 group/chan"
+                  className="flex items-center gap-1.5 group/chan shrink-0"
                 >
                   <span className="text-muted text-[10px] group-hover/chan:text-foreground transition-colors">IN</span>
                   <span 
@@ -212,20 +212,20 @@ export function PostCard({
                 </Link>
               )}
               {isStory && (
-                <span className="font-mono text-[8px] bg-truth-accentPurple text-truth-bg px-2 py-0.5 uppercase font-bold tracking-tighter">
+                <span className="font-mono text-[8px] bg-truth-accentPurple text-truth-bg px-2 py-0.5 uppercase font-bold tracking-tighter shrink-0">
                   STORY_MODE
                 </span>
               )}
             </div>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[9px] text-muted uppercase tracking-widest mt-1">
-              <span className="flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-3 gap-y-1 font-mono text-[9px] text-muted uppercase tracking-widest mt-1">
+              <span className="flex items-center gap-1">
                 {isShadow ? `MASK_ID: ${post.author.shadowName || 'ANONYMOUS'}` : "AUTH_VERIFIED"}
                 {isShadow && post.author.shadowVerified && (
                   <CheckCircle className="w-2.5 h-2.5 text-truth-accentPurple fill-truth-accentPurple/10" />
                 )}
               </span>
               
-              <span className={`flex items-center gap-1 px-1.5 py-0.5 border border-opacity-30 ${
+              <span className={`flex items-center gap-1 px-1.5 py-0.5 border border-opacity-30 shrink-0 ${
                 post.author.reputationTier === 'ARCHITECT' ? 'text-truth-accentYellow border-truth-accentYellow bg-truth-accentYellow/10' :
                 post.author.reputationTier === 'GUARDIAN' ? 'text-truth-accentGreen border-truth-accentGreen bg-truth-accentGreen/10' :
                 post.author.reputationTier === 'ORACLE' ? 'text-truth-accentBlue border-truth-accentBlue bg-truth-accentBlue/10' :
@@ -236,7 +236,7 @@ export function PostCard({
                 {post.author.reputationTier}
               </span>
 
-              <span>{" // "} {formatRelativeTime(post.createdAt)}</span>
+              <span className="shrink-0">{" // "} {formatRelativeTime(post.createdAt)}</span>
               {post.isRestored && (
                 <span className="flex items-center gap-1 text-truth-accentGreen border border-truth-accentGreen/30 bg-truth-accentGreen/5 px-1.5 py-0.5 font-black animate-pulse">
                   <ShieldCheck className="w-2.5 h-2.5" />
@@ -262,7 +262,7 @@ export function PostCard({
                 initial={{ opacity: 0, scale: 0.95, y: -10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                className="absolute right-0 mt-2 w-56 bg-truth-nearBlack border-2 border-truth-midGray shadow-xl z-50 p-1"
+                className="absolute right-0 mt-2 w-52 max-w-[calc(100vw-2rem)] bg-truth-nearBlack border-2 border-truth-midGray shadow-xl z-50 p-1"
               >
                 {isAuthor && (
                   <>
@@ -362,7 +362,7 @@ export function PostCard({
         ) : (
           <div className="space-y-4">
             <div className={isDetail ? "" : "block group/content relative"}>
-              <div className={`font-bitter ${isDetail ? "text-lg sm:text-2xl" : "text-base sm:text-lg lg:text-xl"} text-foreground leading-relaxed prose prose-invert max-w-none selection:bg-truth-accentRed selection:text-truth-bg`}>
+              <div className={`font-bitter ${isDetail ? "text-lg sm:text-2xl" : "text-sm sm:text-base lg:text-lg"} text-foreground leading-relaxed prose prose-invert max-w-none break-words overflow-wrap-anywhere selection:bg-truth-accentRed selection:text-truth-bg`}>
                 <ReactMarkdown>{displayContent}</ReactMarkdown>
               </div>
               {!isDetail && isLong && (
@@ -472,7 +472,7 @@ export function PostCard({
       </div>
 
       {/* Footer Actions */}
-      <div className="flex items-center justify-between pt-4 sm:pt-6 border-t border-truth-midGray relative z-10 gap-2 flex-wrap">
+      <div className="flex items-center justify-between pt-4 sm:pt-6 border-t border-truth-midGray relative z-10 gap-2 flex-wrap min-w-0">
         <div className="flex items-center gap-3 sm:gap-6">
           <div className="relative">
             <button 
@@ -625,7 +625,7 @@ export function PostCard({
           </button>
         </div>
 
-        <button className="flex items-center gap-1.5 font-mono text-[10px] text-muted hover:text-foreground transition-colors group/view">
+        <button className="flex items-center gap-1 font-mono text-[9px] sm:text-[10px] text-muted hover:text-foreground transition-colors group/view shrink-0 whitespace-nowrap">
           VIEW_DECRYPTION
           <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
         </button>
@@ -656,7 +656,7 @@ export function PostCard({
                   }
                 })
               }}
-              className="flex items-center gap-3"
+              className="flex items-center gap-2 flex-wrap sm:flex-nowrap"
             >
               <input type="hidden" name="postId" value={post.id} />
               <input 
@@ -665,7 +665,7 @@ export function PostCard({
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 placeholder="Synchronize comment signal..."
-                className="flex-1 bg-truth-nearBlack border border-truth-midGray px-4 py-2 font-mono text-[10px] text-foreground placeholder:text-muted/40 focus:outline-none focus:border-truth-accentBlue transition-colors"
+                className="flex-1 min-w-0 bg-truth-nearBlack border border-truth-midGray px-3 py-2 font-mono text-[10px] text-foreground placeholder:text-muted/40 focus:outline-none focus:border-truth-accentBlue transition-colors"
                 disabled={isPending}
               />
               <button 

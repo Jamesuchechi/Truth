@@ -36,7 +36,7 @@ export default async function FeedPage() {
   })
 
   return (
-    <div className="max-w-6xl mx-auto py-12">
+    <div className="max-w-6xl mx-auto py-6 sm:py-10 md:py-12 px-0">
       {/* Feed Header - Twitch Style Pulse */}
       <header className="mb-12 relative overflow-hidden">
         <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between border-b-4 border-truth-midGray pb-6 relative z-10 gap-4">

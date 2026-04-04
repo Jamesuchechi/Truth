@@ -210,3 +210,22 @@ html {
   overflow-x: hidden;
 }
 
+/* Safari-safe word break for post content */
+.overflow-wrap-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Ensure prose content doesn't overflow on mobile */
+.prose {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100% !important;
+}
+
+.prose pre, .prose code {
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+

@@ -8,11 +8,52 @@ import Link from "next/link"
 import { Inbox } from "lucide-react"
 import NftManifesto from "@/components/profile/NftManifesto"
 import type { NftStatus } from "@prisma/client"
+import type { Metadata } from "next"
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://truth-so4f.vercel.app'
 
 interface Props {
   params: Promise<{
     username: string
   }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { username } = await params
+  const user = await getUserByUsername(username)
+
+  if (!user) {
+    return {
+      title: 'Node Not Found | TRUTH',
+      description: 'This identity node does not exist in the TRUTH protocol.',
+    }
+  }
+
+  const canonicalUrl = `${BASE_URL}/${username}`
+  const ogUrl = `${BASE_URL}/api/og?type=profile&username=${encodeURIComponent(username)}&tier=${encodeURIComponent(user.reputationTier || 'SIGNAL')}`
+
+  return {
+    title: `${username} | TRUTH Signal Protocol`,
+    description: user.bio
+      ? user.bio.substring(0, 160)
+      : `${username} is emitting signals on TRUTH — the radical honesty social protocol.`,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title: `${username} on TRUTH`,
+      description: user.bio || 'Radical honesty. Anonymous connection.',
+      url: canonicalUrl,
+      images: [{ url: ogUrl, width: 1200, height: 630, alt: `${username}'s TRUTH profile` }],
+      type: 'profile',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${username} on TRUTH`,
+      description: user.bio || 'Radical honesty. Anonymous connection.',
+      images: [ogUrl],
+    },
+  }
 }
 
 export default async function ProfilePage({ params }: Props) {

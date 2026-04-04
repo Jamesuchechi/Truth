@@ -42,35 +42,35 @@ export default function FeedSkeleton() {
       {[1, 2].map((i) => (
         <div 
           key={i}
-          className="bg-card border-2 border-border p-8 shadow-[10px_10px_0px_rgba(0,0,0,0.05)]"
+          className="bg-card border-2 border-border p-3 sm:p-6 lg:p-8 shadow-[4px_4px_0px_rgba(0,0,0,0.05)] sm:shadow-[10px_10px_0px_rgba(0,0,0,0.05)]"
         >
           {/* Header Skeleton */}
-          <div className="flex items-start justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <Skeleton variant="circle" className="w-10 h-10" />
+          <div className="flex items-start justify-between mb-6 sm:mb-8">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <Skeleton variant="circle" className="w-8 h-8 sm:w-10 sm:h-10 shrink-0" />
               <div className="space-y-2">
-                <Skeleton className="h-3 w-24" />
-                <Skeleton className="h-2 w-32 opacity-50" />
+                <Skeleton className="h-3 w-20 sm:w-24" />
+                <Skeleton className="h-2 w-28 sm:w-32 opacity-50" />
               </div>
             </div>
             <Skeleton className="w-6 h-6 border-none" />
           </div>
 
           {/* Content Skeleton */}
-          <div className="space-y-3 mb-8">
+          <div className="space-y-3 mb-6 sm:mb-8">
             <Skeleton className="h-4 w-full" />
             <Skeleton className="h-4 w-[90%]" />
             <Skeleton className="h-4 w-[40%]" />
           </div>
 
           {/* Footer Skeleton */}
-          <div className="flex items-center justify-between pt-6 border-t border-border/10">
-            <div className="flex items-center gap-6">
-              <Skeleton className="w-12 h-4" />
-              <Skeleton className="w-12 h-4" />
-              <Skeleton className="w-12 h-4" />
+          <div className="flex items-center justify-between pt-4 sm:pt-6 border-t border-border/10">
+            <div className="flex items-center gap-3 sm:gap-6">
+              <Skeleton className="w-10 sm:w-12 h-4" />
+              <Skeleton className="w-10 sm:w-12 h-4" />
+              <Skeleton className="w-10 sm:w-12 h-4" />
             </div>
-            <Skeleton className="w-20 h-4" />
+            <Skeleton className="w-16 sm:w-20 h-4" />
           </div>
         </div>
       ))}
